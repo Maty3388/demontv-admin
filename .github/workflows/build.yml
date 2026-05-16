@@ -14,12 +14,12 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.24.0'
-      - name: Create Flutter project structure
+      - name: Create Flutter project
         run: |
           flutter create --org com.demontv --project-name demontv_admin tmp_app
           cp -r tmp_app/android .
-          cp -r tmp_app/ios . 2>/dev/null || true
           rm -rf tmp_app
+          sed -i "s/'<latest-version>'/'1.9.0'/g" android/build.gradle
       - run: flutter pub get
       - run: flutter build apk --release --no-tree-shake-icons
       - uses: actions/upload-artifact@v4
