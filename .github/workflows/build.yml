@@ -20,18 +20,6 @@ jobs:
           cp -r tmp_app/android .
           rm -rf tmp_app
           sed -i 's/<manifest xmlns:android="http:\/\/schemas.android.com\/apk\/res\/android">/<manifest xmlns:android="http:\/\/schemas.android.com\/apk\/res\/android">\n    <uses-permission android:name="android.permission.INTERNET"\/>/g' android/app/src/main/AndroidManifest.xml
-          pip install pillow -q
-          python3 -c "
-from PIL import Image
-import os
-img = Image.open('assets/icon.png').convert('RGBA')
-for d,s in [('mipmap-mdpi',48),('mipmap-hdpi',72),('mipmap-xhdpi',96),('mipmap-xxhdpi',144),('mipmap-xxxhdpi',192)]:
-    p = f'android/app/src/main/res/{d}'
-    os.makedirs(p, exist_ok=True)
-    img.resize((s,s), Image.LANCZOS).save(f'{p}/ic_launcher.png')
-    img.resize((s,s), Image.LANCZOS).save(f'{p}/ic_launcher_round.png')
-print('Icons OK')
-"
       - run: flutter pub get
       - run: flutter build apk --release --no-tree-shake-icons
       - uses: actions/upload-artifact@v4
