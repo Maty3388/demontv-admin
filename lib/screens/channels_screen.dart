@@ -61,6 +61,8 @@ class _State extends State<ChannelsScreen> {
 
   void _showAdd() => showDialog(context: context, builder: (_) => _AddChannelDialog(onAdded: _load));
 
+  void _showImport() => Navigator.push(context, MaterialPageRoute(builder: (_) => ImportM3uScreen(onImported: _load)));
+
   void _confirmDelete(Map ch) => showDialog(context: context, builder: (ctx) => AlertDialog(
     backgroundColor: AdminTheme.surface,
     title: const Text('¿Eliminar canal?', style: TextStyle(color: Colors.white)),
@@ -141,5 +143,3 @@ class _AddState extends State<_AddChannelDialog> {
     padding: const EdgeInsets.only(bottom: 8),
     child: TextField(controller: c, style: const TextStyle(color: Colors.white, fontSize: 13), decoration: InputDecoration(hintText: hint, contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8))));
 
-  void _showImport() => Navigator.push(context, MaterialPageRoute(builder: (_) => ImportM3uScreen(onImported: _load)));
-}
