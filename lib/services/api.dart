@@ -76,3 +76,6 @@ class AdminApi {
 
   static Future<Map<String, dynamic>> spin() => _post('/admin/spin', {});
 }
+
+  static Future<Map<String, dynamic>> fetchM3u(String url) => _post('/admin/fetch-m3u', {'url': url});
+}

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/api.dart';
+import 'import_m3u_screen.dart';
 import '../theme/theme.dart';
 
 class ChannelsScreen extends StatefulWidget {
@@ -30,6 +31,7 @@ class _State extends State<ChannelsScreen> {
       title: Text('Canales (${_channels.length})'),
       actions: [
         IconButton(icon: const Icon(Icons.add_circle_outline, color: AdminTheme.cyan), onPressed: _showAdd),
+        IconButton(icon: const Icon(Icons.playlist_add, color: AdminTheme.gold), onPressed: _showImport),
         IconButton(icon: const Icon(Icons.refresh, color: AdminTheme.cyan), onPressed: _load),
       ],
     ),
@@ -138,4 +140,6 @@ class _AddState extends State<_AddChannelDialog> {
   Widget _field(TextEditingController c, String hint) => Padding(
     padding: const EdgeInsets.only(bottom: 8),
     child: TextField(controller: c, style: const TextStyle(color: Colors.white, fontSize: 13), decoration: InputDecoration(hintText: hint, contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8))));
+
+  void _showImport() => Navigator.push(context, MaterialPageRoute(builder: (_) => ImportM3uScreen(onImported: _load)));
 }
