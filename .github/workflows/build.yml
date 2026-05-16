@@ -19,8 +19,12 @@ jobs:
           flutter create --org com.demontv --project-name demontv_admin tmp_app
           cp -r tmp_app/android .
           rm -rf tmp_app
-          sed -i "s/<latest-version>/1.9.0/g" android/build.gradle
-          cat android/build.gradle
+          python3 -c "
+          f = open('android/build.gradle','r'); c = f.read(); f.close()
+          c = c.replace('<latest-version>','1.9.0')
+          f = open('android/build.gradle','w'); f.write(c); f.close()
+          print('Kotlin version fixed')
+          "
       - run: flutter pub get
       - run: flutter build apk --release --no-tree-shake-icons
       - uses: actions/upload-artifact@v4
