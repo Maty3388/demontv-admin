@@ -9,20 +9,29 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
         with:
-          distribution: zulu
-          java-version: "17"
+          distribution: 'zulu'
+          java-version: '17'
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.19.6"
+          flutter-version: '3.19.6'
       - name: Setup project
         run: |
           flutter create --org com.demontv --project-name demontv_admin tmp_app
           cp -r tmp_app/android .
           rm -rf tmp_app
-          sed -i "s|<manifest xmlns:android="http://schemas.android.com/apk/res/android">|<manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <uses-permission android:name="android.permission.INTERNET"/>|" android/app/src/main/AndroidManifest.xml
+          sed -i 's/<manifest xmlns:android="http:\/\/schemas.android.com\/apk\/res\/android">/<manifest xmlns:android="http:\/\/schemas.android.com\/apk\/res\/android">\n    <uses-permission android:name="android.permission.INTERNET"\/>/g' android/app/src/main/AndroidManifest.xml
           pip install pillow -q
-          python3 -c "from PIL import Image; import os; sizes={chr(39)mipmap-mdpi chr(39):48, chr(39)mipmap-hdpi chr(39):72, chr(39)mipmap-xhdpi chr(39):96, chr(39)mipmap-xxhdpi chr(39):144, chr(39)mipmap-xxxhdpi chr(39):192}"
+          python3 -c "
+from PIL import Image
+import os
+img = Image.open('assets/icon.png').convert('RGBA')
+for d,s in [('mipmap-mdpi',48),('mipmap-hdpi',72),('mipmap-xhdpi',96),('mipmap-xxhdpi',144),('mipmap-xxxhdpi',192)]:
+    p = f'android/app/src/main/res/{d}'
+    os.makedirs(p, exist_ok=True)
+    img.resize((s,s), Image.LANCZOS).save(f'{p}/ic_launcher.png')
+    img.resize((s,s), Image.LANCZOS).save(f'{p}/ic_launcher_round.png')
+print('Icons OK')
+"
       - run: flutter pub get
       - run: flutter build apk --release --no-tree-shake-icons
       - uses: actions/upload-artifact@v4
