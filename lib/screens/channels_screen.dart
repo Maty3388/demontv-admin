@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/api.dart';
-import 'import_m3u_screen.dart';
 import '../theme/theme.dart';
+import 'import_m3u_screen.dart';
 
 class ChannelsScreen extends StatefulWidget {
   const ChannelsScreen({super.key});
@@ -24,14 +24,28 @@ class _State extends State<ChannelsScreen> {
     setState(() => _loading = false);
   }
 
+  void _showAdd() => showDialog(context: context, builder: (_) => _AddChannelDialog(onAdded: _load));
+  void _showImport() => Navigator.push(context, MaterialPageRoute(builder: (_) => ImportM3uScreen(onImported: _load)));
+
+  void _confirmDelete(Map ch) => showDialog(context: context, builder: (ctx) => AlertDialog(
+    backgroundColor: AdminTheme.surface,
+    title: const Text('Eliminar canal?', style: TextStyle(color: Colors.white)),
+    content: Text(ch['name'] ?? '', style: const TextStyle(color: AdminTheme.textSecondary)),
+    actions: [
+      TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar', style: TextStyle(color: AdminTheme.textSecondary))),
+      TextButton(onPressed: () async { await AdminApi.deleteChannel(ch['id']); Navigator.pop(ctx); _load(); },
+        child: const Text('ELIMINAR', style: TextStyle(color: AdminTheme.red, fontWeight: FontWeight.bold))),
+    ],
+  ));
+
   @override
   Widget build(BuildContext context) => Scaffold(
     backgroundColor: AdminTheme.bg,
     appBar: AppBar(
       title: Text('Canales (${_channels.length})'),
       actions: [
-        IconButton(icon: const Icon(Icons.add_circle_outline, color: AdminTheme.cyan), onPressed: _showAdd),
         IconButton(icon: const Icon(Icons.playlist_add, color: AdminTheme.gold), onPressed: _showImport),
+        IconButton(icon: const Icon(Icons.add_circle_outline, color: AdminTheme.cyan), onPressed: _showAdd),
         IconButton(icon: const Icon(Icons.refresh, color: AdminTheme.cyan), onPressed: _load),
       ],
     ),
@@ -58,21 +72,6 @@ class _State extends State<ChannelsScreen> {
               );
             }),
   );
-
-  void _showAdd() => showDialog(context: context, builder: (_) => _AddChannelDialog(onAdded: _load));
-
-  void _showImport() => Navigator.push(context, MaterialPageRoute(builder: (_) => ImportM3uScreen(onImported: _load)));
-
-  void _confirmDelete(Map ch) => showDialog(context: context, builder: (ctx) => AlertDialog(
-    backgroundColor: AdminTheme.surface,
-    title: const Text('¿Eliminar canal?', style: TextStyle(color: Colors.white)),
-    content: Text(ch['name'] ?? '', style: const TextStyle(color: AdminTheme.textSecondary)),
-    actions: [
-      TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar', style: TextStyle(color: AdminTheme.textSecondary))),
-      TextButton(onPressed: () async { await AdminApi.deleteChannel(ch['id']); Navigator.pop(ctx); _load(); },
-        child: const Text('ELIMINAR', style: TextStyle(color: AdminTheme.red, fontWeight: FontWeight.bold))),
-    ],
-  ));
 }
 
 class _AddChannelDialog extends StatefulWidget {
@@ -113,7 +112,7 @@ class _AddState extends State<_AddChannelDialog> {
     title: const Text('Agregar Canal', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
     content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
       _field(_name, 'Nombre del canal *'),
-      _field(_cat, 'Categoría (ej: 🇦🇷 DEPORTES)'),
+      _field(_cat, 'Categoria (ej: DEPORTES)'),
       _field(_logo, 'URL del logo'),
       _field(_url, 'URL del stream *'),
       const SizedBox(height: 10),
@@ -125,7 +124,7 @@ class _AddState extends State<_AddChannelDialog> {
             if (_verifying) const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: AdminTheme.cyan)),
             if (_verifyResult != null && !_verifying) Icon(_verifyResult!['ok'] == true ? Icons.check_circle : Icons.cancel, color: _verifyResult!['ok'] == true ? Colors.green : AdminTheme.red, size: 16),
             const SizedBox(width: 6),
-            Text(_verifyResult == null ? 'Verificar stream' : (_verifyResult!['ok'] == true ? '✅ Activo' : '❌ Inactivo'),
+            Text(_verifyResult == null ? 'Verificar stream' : (_verifyResult!['ok'] == true ? 'Activo' : 'Inactivo'),
               style: TextStyle(color: _verifyResult == null ? AdminTheme.cyan : (_verifyResult!['ok'] == true ? Colors.green : AdminTheme.red), fontSize: 13)),
           ])),
       ),
@@ -142,4 +141,4 @@ class _AddState extends State<_AddChannelDialog> {
   Widget _field(TextEditingController c, String hint) => Padding(
     padding: const EdgeInsets.only(bottom: 8),
     child: TextField(controller: c, style: const TextStyle(color: Colors.white, fontSize: 13), decoration: InputDecoration(hintText: hint, contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8))));
-
+}
