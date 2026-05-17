@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class AdminApi {
-  static const base = 'http://149.104.92.205:25461';
+  static const base = 'https://149.104.92.205';
   static String? token;
 
   static Map<String, String> get headers => {
