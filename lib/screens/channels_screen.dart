@@ -111,7 +111,7 @@ class _State extends State<ChannelsScreen> {
                     Text(ch["category"] ?? "", style: const TextStyle(color: AdminTheme.textSecondary, fontSize: 11)),
                   ])),
                   GestureDetector(
-                    onTap: () => _deleteChannel(ch["id"] ?? "", ch["name"] ?? ""),
+                    onTap: () => _deleteChannel((ch["_id"] ?? ch["id"] ?? "").toString() ?? "", ch["name"] ?? ""),
                     child: Container(padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(color: AdminTheme.red.withOpacity(0.15), borderRadius: BorderRadius.circular(8)),
                       child: const Icon(Icons.delete_outline, color: AdminTheme.red, size: 20)),
