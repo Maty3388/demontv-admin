@@ -77,4 +77,7 @@ class AdminApi {
   }
 
   static Future<Map<String, dynamic>> spin() => _post('/admin/spin', {});
+  static Future<Map<String, dynamic>> getAppVersion() => _get('/admin/app/version');
+  static Future<Map<String, dynamic>> updateAppVersion({required String version, required String apkUrl, required String changelog, required bool forceUpdate}) =>
+      _put('/admin/app/version', {'version': version, 'apkUrl': apkUrl, 'changelog': changelog, 'forceUpdate': forceUpdate});
 }

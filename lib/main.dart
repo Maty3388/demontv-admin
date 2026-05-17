@@ -9,6 +9,7 @@ import 'screens/movies_screen.dart';
 import 'screens/series_screen.dart';
 import 'screens/channels_screen.dart';
 import 'screens/spin_screen.dart';
+import 'screens/version_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -50,6 +51,7 @@ class _NavState extends State<MainNavScreen> {
     MoviesScreen(),
     SeriesAdminScreen(),
     LogsScreen(),
+    VersionScreen(),
   ];
 
   @override
@@ -73,6 +75,7 @@ class _NavState extends State<MainNavScreen> {
         _NavBtn(icon: Icons.movie_outlined, activeIcon: Icons.movie, label: 'Películas', index: 3, selected: _idx, onTap: (i) => setState(() => _idx = i)),
         _NavBtn(icon: Icons.tv_outlined, activeIcon: Icons.tv, label: 'Series', index: 4, selected: _idx, onTap: (i) => setState(() => _idx = i)),
         _NavBtn(icon: Icons.history_outlined, activeIcon: Icons.history, label: 'Logs', index: 5, selected: _idx, onTap: (i) => setState(() => _idx = i)),
+        _NavBtn(icon: Icons.system_update_outlined, activeIcon: Icons.system_update, label: 'Update', index: 6, selected: _idx, onTap: (i) => setState(() => _idx = i)),
       ]),
     )),
   );
