@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
-import '../services/api.dart';
-import '../theme/theme.dart';
-import 'import_m3u_screen.dart';
+import "package:flutter/material.dart";
+import "package:file_picker/file_picker.dart";
+import "../services/api.dart";
+import "../theme/theme.dart";
+import "import_m3u_screen.dart";
 
 class ChannelsScreen extends StatefulWidget {
   const ChannelsScreen({super.key});
@@ -19,32 +20,67 @@ class _State extends State<ChannelsScreen> {
     setState(() => _loading = true);
     try {
       final r = await AdminApi.getChannels();
-      setState(() => _channels = r['channels'] ?? []);
+      setState(() => _channels = r["channels"] ?? []);
     } catch (_) {}
     setState(() => _loading = false);
   }
 
   void _showAdd() => showDialog(context: context, builder: (_) => _AddChannelDialog(onAdded: _load));
-  void _showImport() => Navigator.push(context, MaterialPageRoute(builder: (_) => ImportM3uScreen(onImported: _load)));
 
-  void _confirmDelete(Map ch) => showDialog(context: context, builder: (ctx) => AlertDialog(
-    backgroundColor: AdminTheme.surface,
-    title: const Text('Eliminar canal?', style: TextStyle(color: Colors.white)),
-    content: Text(ch['name'] ?? '', style: const TextStyle(color: AdminTheme.textSecondary)),
-    actions: [
-      TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar', style: TextStyle(color: AdminTheme.textSecondary))),
-      TextButton(onPressed: () async { await AdminApi.deleteChannel(ch['id']); Navigator.pop(ctx); _load(); },
-        child: const Text('ELIMINAR', style: TextStyle(color: AdminTheme.red, fontWeight: FontWeight.bold))),
-    ],
-  ));
+  void _showImportOptions() {
+    showModalBottomSheet(context: context, backgroundColor: AdminTheme.surface,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => Padding(padding: const EdgeInsets.all(24), child: Column(mainAxisSize: MainAxisSize.min, children: [
+        const Text("Importar Playlist", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 20),
+        ListTile(leading: const Icon(Icons.link, color: AdminTheme.cyan),
+          title: const Text("Desde URL", style: TextStyle(color: Colors.white)),
+          subtitle: const Text("http://ejemplo.com/lista.m3u", style: TextStyle(color: AdminTheme.textSecondary, fontSize: 11)),
+          onTap: () { Navigator.pop(ctx); Navigator.push(context, MaterialPageRoute(builder: (_) => ImportM3uScreen(onImported: _load))); }),
+        ListTile(leading: const Icon(Icons.folder_open, color: AdminTheme.gold),
+          title: const Text("Desde archivo local", style: TextStyle(color: Colors.white)),
+          subtitle: const Text(".m3u, .m3u8, .txt", style: TextStyle(color: AdminTheme.textSecondary, fontSize: 11)),
+          onTap: () async {
+            Navigator.pop(ctx);
+            try {
+              final result = await FilePicker.platform.pickFiles(type: FileType.any, withData: true);
+              if (result != null && result.files.single.bytes != null) {
+                final content = String.fromCharCodes(result.files.single.bytes!);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => ImportM3uScreen(onImported: _load, fileContent: content)));
+              }
+            } catch (e) {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e"), backgroundColor: AdminTheme.red));
+            }
+          }),
+        ListTile(leading: const Icon(Icons.text_snippet_outlined, color: Colors.purple),
+          title: const Text("Pegar texto M3U", style: TextStyle(color: Colors.white)),
+          onTap: () { Navigator.pop(ctx); Navigator.push(context, MaterialPageRoute(builder: (_) => ImportM3uScreen(onImported: _load, pasteMode: true))); }),
+      ])));
+  }
+
+  Future<void> _deleteChannel(String id, String name) async {
+    final confirm = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(
+      backgroundColor: AdminTheme.surface,
+      title: const Text("Eliminar canal?", style: TextStyle(color: Colors.white)),
+      content: Text(name, style: const TextStyle(color: AdminTheme.textSecondary)),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text("Cancelar", style: TextStyle(color: AdminTheme.textSecondary))),
+        TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text("ELIMINAR", style: TextStyle(color: AdminTheme.red, fontWeight: FontWeight.bold))),
+      ],
+    ));
+    if (confirm == true) {
+      final r = await AdminApi.deleteChannel(id);
+      if (r["success"] == true) { _load(); ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Canal eliminado"), backgroundColor: AdminTheme.red)); }
+    }
+  }
 
   @override
   Widget build(BuildContext context) => Scaffold(
     backgroundColor: AdminTheme.bg,
     appBar: AppBar(
-      title: Text('Canales (${_channels.length})'),
+      title: Text("Canales (${_channels.length})"),
       actions: [
-        IconButton(icon: const Icon(Icons.playlist_add, color: AdminTheme.gold), onPressed: _showImport),
+        IconButton(icon: const Icon(Icons.playlist_add, color: AdminTheme.gold), onPressed: _showImportOptions),
         IconButton(icon: const Icon(Icons.add_circle_outline, color: AdminTheme.cyan), onPressed: _showAdd),
         IconButton(icon: const Icon(Icons.refresh, color: AdminTheme.cyan), onPressed: _load),
       ],
@@ -52,23 +88,35 @@ class _State extends State<ChannelsScreen> {
     body: _loading
       ? const Center(child: CircularProgressIndicator(color: AdminTheme.cyan))
       : _channels.isEmpty
-        ? const Center(child: Text('Sin canales', style: TextStyle(color: AdminTheme.textSecondary)))
-        : ListView.separated(
-            padding: const EdgeInsets.all(16),
-            separatorBuilder: (_, __) => const Divider(color: AdminTheme.border, height: 1),
+        ? const Center(child: Text("Sin canales", style: TextStyle(color: AdminTheme.textSecondary)))
+        : ListView.builder(
+            padding: const EdgeInsets.all(12),
             itemCount: _channels.length,
             itemBuilder: (ctx, i) {
               final ch = _channels[i];
-              return ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: Container(width: 44, height: 44,
-                  decoration: BoxDecoration(color: AdminTheme.surface, borderRadius: BorderRadius.circular(8)),
-                  child: ch['logo']?.isNotEmpty == true
-                    ? ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.network(ch['logo'], fit: BoxFit.contain, errorBuilder: (_, __, ___) => const Icon(Icons.tv, color: AdminTheme.textHint)))
-                    : const Icon(Icons.tv, color: AdminTheme.textHint)),
-                title: Text(ch['name'] ?? '', style: const TextStyle(color: Colors.white, fontSize: 14)),
-                subtitle: Text(ch['category'] ?? '', style: const TextStyle(color: AdminTheme.textSecondary, fontSize: 11)),
-                trailing: IconButton(icon: const Icon(Icons.delete_outline, color: AdminTheme.red, size: 20), onPressed: () => _confirmDelete(ch)),
+              return Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(color: AdminTheme.surface, borderRadius: BorderRadius.circular(10), border: Border.all(color: AdminTheme.border, width: 0.5)),
+                child: Row(children: [
+                  Container(width: 44, height: 44,
+                    decoration: BoxDecoration(color: AdminTheme.surfaceAlt, borderRadius: BorderRadius.circular(8)),
+                    child: ch["logo"]?.isNotEmpty == true
+                      ? ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.network(ch["logo"], fit: BoxFit.contain, errorBuilder: (_, __, ___) => const Icon(Icons.tv, color: AdminTheme.textHint, size: 20)))
+                      : const Icon(Icons.tv, color: AdminTheme.textHint, size: 20)),
+                  const SizedBox(width: 12),
+                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(ch["name"] ?? "", style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500), maxLines: 1, overflow: TextOverflow.ellipsis),
+                    const SizedBox(height: 2),
+                    Text(ch["category"] ?? "", style: const TextStyle(color: AdminTheme.textSecondary, fontSize: 11)),
+                  ])),
+                  GestureDetector(
+                    onTap: () => _deleteChannel(ch["id"] ?? "", ch["name"] ?? ""),
+                    child: Container(padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(color: AdminTheme.red.withOpacity(0.15), borderRadius: BorderRadius.circular(8)),
+                      child: const Icon(Icons.delete_outline, color: AdminTheme.red, size: 20)),
+                  ),
+                ]),
               );
             }),
   );
@@ -90,55 +138,45 @@ class _AddState extends State<_AddChannelDialog> {
   String? _error;
 
   Future<void> _verify() async {
-    if (_url.text.isEmpty) { setState(() => _error = 'URL requerida'); return; }
+    if (_url.text.isEmpty) { setState(() => _error = "URL requerida"); return; }
     setState(() { _verifying = true; _error = null; _verifyResult = null; });
     final r = await AdminApi.verifyStream(_url.text.trim());
     setState(() { _verifyResult = r; _verifying = false; });
-    if (r['ok'] != true) setState(() => _error = 'Stream no responde: ${r['error'] ?? 'HTTP ${r['status']}'}');
+    if (r["ok"] != true) setState(() => _error = "Stream no responde");
   }
 
   Future<void> _add() async {
-    if (_name.text.isEmpty || _url.text.isEmpty) { setState(() => _error = 'Nombre y URL requeridos'); return; }
+    if (_name.text.isEmpty || _url.text.isEmpty) { setState(() => _error = "Nombre y URL requeridos"); return; }
     setState(() { _adding = true; _error = null; });
-    final r = await AdminApi.addChannel(_name.text.trim(), _cat.text.trim().isNotEmpty ? _cat.text.trim() : 'General', _logo.text.trim(), _url.text.trim());
+    final r = await AdminApi.addChannel(_name.text.trim(), _cat.text.trim().isNotEmpty ? _cat.text.trim() : "General", _logo.text.trim(), _url.text.trim());
     setState(() => _adding = false);
-    if (r['success'] == true) { widget.onAdded(); Navigator.pop(context); }
-    else setState(() => _error = r['error'] ?? 'Error');
+    if (r["success"] == true) { widget.onAdded(); Navigator.pop(context); }
+    else setState(() => _error = r["error"] ?? "Error");
   }
 
   @override
   Widget build(BuildContext context) => AlertDialog(
     backgroundColor: AdminTheme.surface,
-    title: const Text('Agregar Canal', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+    title: const Text("Agregar Canal", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
     content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
-      _field(_name, 'Nombre del canal *'),
-      _field(_cat, 'Categoria (ej: DEPORTES)'),
-      _field(_logo, 'URL del logo'),
-      _field(_url, 'URL del stream *'),
+      _f(_name, "Nombre *"), _f(_cat, "Categoria"), _f(_logo, "URL logo"), _f(_url, "URL stream *"),
       const SizedBox(height: 10),
-      GestureDetector(
-        onTap: _verifying ? null : _verify,
+      GestureDetector(onTap: _verifying ? null : _verify,
         child: Container(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          decoration: BoxDecoration(border: Border.all(color: _verifyResult != null ? (_verifyResult!['ok'] == true ? Colors.green : AdminTheme.red) : AdminTheme.cyan), borderRadius: BorderRadius.circular(8)),
           child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
             if (_verifying) const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: AdminTheme.cyan)),
-            if (_verifyResult != null && !_verifying) Icon(_verifyResult!['ok'] == true ? Icons.check_circle : Icons.cancel, color: _verifyResult!['ok'] == true ? Colors.green : AdminTheme.red, size: 16),
             const SizedBox(width: 6),
-            Text(_verifyResult == null ? 'Verificar stream' : (_verifyResult!['ok'] == true ? 'Activo' : 'Inactivo'),
-              style: TextStyle(color: _verifyResult == null ? AdminTheme.cyan : (_verifyResult!['ok'] == true ? Colors.green : AdminTheme.red), fontSize: 13)),
-          ])),
-      ),
-      if (_error != null) ...[const SizedBox(height: 8), Text(_error!, style: const TextStyle(color: AdminTheme.red, fontSize: 12), textAlign: TextAlign.center)],
+          ]))),
     ])),
     actions: [
-      TextButton(onPressed: () => Navigator.pop(context), child: const Text('CANCELAR', style: TextStyle(color: AdminTheme.textSecondary))),
+      TextButton(onPressed: () => Navigator.pop(context), child: const Text("CANCELAR", style: TextStyle(color: AdminTheme.textSecondary))),
       TextButton(onPressed: _adding ? null : _add,
         child: _adding ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: AdminTheme.cyan))
-            : const Text('AGREGAR', style: TextStyle(color: AdminTheme.cyan, fontWeight: FontWeight.bold))),
+            : const Text("AGREGAR", style: TextStyle(color: AdminTheme.cyan, fontWeight: FontWeight.bold))),
     ],
   );
 
-  Widget _field(TextEditingController c, String hint) => Padding(
-    padding: const EdgeInsets.only(bottom: 8),
-    child: TextField(controller: c, style: const TextStyle(color: Colors.white, fontSize: 13), decoration: InputDecoration(hintText: hint, contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8))));
+  Widget _f(TextEditingController c, String h) => Padding(padding: const EdgeInsets.only(bottom: 8),
+    child: TextField(controller: c, style: const TextStyle(color: Colors.white, fontSize: 13),
+      decoration: InputDecoration(hintText: h, contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8))));
 }
