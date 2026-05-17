@@ -87,7 +87,7 @@ class _SeriesCard extends StatelessWidget {
     content: Text(series['title'] ?? '', style: const TextStyle(color: AdminTheme.textSecondary)),
     actions: [
       TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar', style: TextStyle(color: AdminTheme.textSecondary))),
-      TextButton(onPressed: () async { await AdminApi.deleteSeries(series['id']); Navigator.pop(ctx); onDelete(); },
+      TextButton(onPressed: () async { await AdminApi.deleteSeries(series['_id'] ?? series['id']); Navigator.pop(ctx); onDelete(); },
         child: const Text('ELIMINAR', style: TextStyle(color: AdminTheme.red, fontWeight: FontWeight.bold))),
     ],
   ));
