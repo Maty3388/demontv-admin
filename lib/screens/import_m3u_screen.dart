@@ -31,19 +31,19 @@ class _State extends State<ImportM3uScreen> {
     final list = <_Ch>[];
     final lines = content.split("
 ").map((l) => l.trim()).toList();
-    String? name, logo, cat;
+    String? chName, chLogo, chCat;
     for (int i = 0; i < lines.length; i++) {
       final line = lines[i];
       if (line.startsWith("#EXTINF")) {
-        name = RegExp(r"tvg-name="([^"]*)"").firstMatch(line)?.group(1);
-        logo = RegExp(r"tvg-logo="([^"]*)"").firstMatch(line)?.group(1) ?? "";
-        cat  = RegExp(r"group-title="([^"]*)"").firstMatch(line)?.group(1) ?? "General";
-        if (name == null || name.isEmpty) {
+        chName = RegExp(r"tvg-name="([^"]*)"").firstMatch(line)?.group(1);
+        chLogo = RegExp(r"tvg-logo="([^"]*)"").firstMatch(line)?.group(1) ?? "";
+        chCat  = RegExp(r"group-title="([^"]*)"").firstMatch(line)?.group(1) ?? "General";
+        if (chName == null || chName.isEmpty) {
           final idx = line.lastIndexOf(",");
           if (idx != -1) name = line.substring(idx + 1).trim();
         }
-        list.add(_Ch(name: name, logo: logo ?? "", cat: cat ?? "General", url: line));
-        name = null;
+        list.add(_Ch(name: chName!, logo: chLogo ?? "", cat: chCat ?? "General", url: line));
+        chName = null;
       }
     }
     return list;
