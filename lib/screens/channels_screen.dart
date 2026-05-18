@@ -112,19 +112,9 @@ class _State extends State<ChannelsScreen> {
                     Text(ch["category"] ?? "", style: const TextStyle(color: AdminTheme.textSecondary, fontSize: 11)),
                   ])),
                   Row(mainAxisSize: MainAxisSize.min, children: [
-                  GestureDetector(
-                    onTap: () { final raw = (ch["_id"] ?? ch["id"] ?? "").toString(); final id = raw.replaceAll("ObjectId(", "").replaceAll(")", "").replaceAll("'", "").trim(); _deleteChannel(id, ch["name"] ?? ""); },
-                    child: Container(padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(color: AdminTheme.red.withOpacity(0.15), borderRadius: BorderRadius.circular(8)),
-                      child: const Icon(Icons.delete_outline, color: AdminTheme.red, size: 20))),
-                  const SizedBox(width: 6),
-                  GestureDetector(
-                    onTap: () { final raw = (ch["_id"] ?? ch["id"] ?? "").toString(); final id = raw.replaceAll("ObjectId(", "").replaceAll(")", "").replaceAll("'", "").trim(); showDialog(context: context, builder: (_) => _EditChannelDialog(id: id, channel: ch, onEdited: _load)); },
-                    child: Container(padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(color: AdminTheme.cyan.withOpacity(0.15), borderRadius: BorderRadius.circular(8)),
-                      child: const Icon(Icons.edit_outlined, color: AdminTheme.cyan, size: 20))),
+                    IconButton(icon: const Icon(Icons.delete_outline, color: AdminTheme.red, size: 20), onPressed: () { final raw = (ch["_id"] ?? ch["id"] ?? "").toString(); final id = raw.replaceAll("ObjectId(", "").replaceAll(")", "").replaceAll("'", "").trim(); _deleteChannel(id, ch["name"] ?? ""); }),
+                    IconButton(icon: const Icon(Icons.edit_outlined, color: AdminTheme.cyan, size: 20), onPressed: () { final raw = (ch["_id"] ?? ch["id"] ?? "").toString(); final id = raw.replaceAll("ObjectId(", "").replaceAll(")", "").replaceAll("'", "").trim(); showDialog(context: context, builder: (_) => _EditChannelDialog(id: id, channel: ch, onEdited: _load)); }),
                   ]),
-                ]),
               );
             }),
   );
