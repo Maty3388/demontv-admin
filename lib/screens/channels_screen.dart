@@ -115,6 +115,9 @@ class _State extends State<ChannelsScreen> {
                     child: Container(padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(color: AdminTheme.red.withOpacity(0.15), borderRadius: BorderRadius.circular(8)),
                       child: const Icon(Icons.delete_outline, color: AdminTheme.red, size: 20)),
+                    GestureDetector(
+                      onTap: () { final raw = (ch["_id"] ?? ch["id"] ?? "").toString(); final id = raw.replaceAll("ObjectId(", "").replaceAll(")", "").replaceAll("'", "").trim(); showDialog(context: context, builder: (_) => _EditChannelDialog(id: id, channel: ch, onEdited: _load)); },
+                      child: const Icon(Icons.edit_outlined, color: AdminTheme.cyan, size: 20)),
                   ),
                 ]),
               );
@@ -173,6 +176,57 @@ class _AddState extends State<_AddChannelDialog> {
       TextButton(onPressed: _adding ? null : _add,
         child: _adding ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: AdminTheme.cyan))
             : const Text("AGREGAR", style: TextStyle(color: AdminTheme.cyan, fontWeight: FontWeight.bold))),
+    ],
+  );
+
+  Widget _f(TextEditingController c, String h) => Padding(padding: const EdgeInsets.only(bottom: 8),
+    child: TextField(controller: c, style: const TextStyle(color: Colors.white, fontSize: 13),
+      decoration: InputDecoration(hintText: h, contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8))));
+}
+
+class _EditChannelDialog extends StatefulWidget {
+  final String id;
+  final Map channel;
+  final VoidCallback onEdited;
+  const _EditChannelDialog({required this.id, required this.channel, required this.onEdited});
+  @override State<_EditChannelDialog> createState() => _EditState();
+}
+
+class _EditState extends State<_EditChannelDialog> {
+  late final _name = TextEditingController(text: widget.channel["name"] ?? "");
+  late final _cat  = TextEditingController(text: widget.channel["category"] ?? "");
+  late final _logo = TextEditingController(text: widget.channel["logo"] ?? "");
+  late final _url  = TextEditingController(text: widget.channel["stream_url"] ?? "");
+  bool _saving = false;
+  String? _error;
+
+  Future<void> _save() async {
+    if (_name.text.isEmpty || _url.text.isEmpty) { setState(() => _error = "Nombre y URL requeridos"); return; }
+    setState(() { _saving = true; _error = null; });
+    final r = await AdminApi.updateChannel(widget.id, _name.text.trim(), _cat.text.trim().isNotEmpty ? _cat.text.trim() : "General", _logo.text.trim(), _url.text.trim());
+    setState(() => _saving = false);
+    if (r["success"] == true) { widget.onEdited(); Navigator.pop(context); }
+    else setState(() => _error = r["error"] ?? "Error al guardar");
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    backgroundColor: AdminTheme.surface,
+    title: const Text("Editar Canal", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+    content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
+      _f(_name, "Nombre *"),
+      _f(_cat, "Categoria"),
+      _f(_logo, "URL logo"),
+      _f(_url, "URL stream *"),
+      if (_error != null) Padding(padding: const EdgeInsets.only(top: 8),
+        child: Text(_error!, style: const TextStyle(color: AdminTheme.red, fontSize: 12))),
+    ])),
+    actions: [
+      TextButton(onPressed: () => Navigator.pop(context), child: const Text("CANCELAR", style: TextStyle(color: AdminTheme.textSecondary))),
+      TextButton(onPressed: _saving ? null : _save,
+        child: _saving
+          ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: AdminTheme.cyan))
+          : const Text("GUARDAR", style: TextStyle(color: AdminTheme.cyan, fontWeight: FontWeight.bold))),
     ],
   );
 
