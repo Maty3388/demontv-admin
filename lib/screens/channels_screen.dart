@@ -113,7 +113,7 @@ class _State extends State<ChannelsScreen> {
                   ])),
                   Row(children: [
                   GestureDetector(
-                    onTap: () { final raw = (ch["_id"] ?? ch["id"] ?? "").toString(); final id = raw.replaceAll("ObjectId(", "").replaceAll(")", "").replaceAll("'", "").trim(); ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("ID: $id"), duration: Duration(seconds: 3))); _deleteChannel(id, ch["name"] ?? ""); },
+                    onTap: () { final raw = (ch["_id"] ?? ch["id"] ?? "").toString(); final id = raw.replaceAll("ObjectId(", "").replaceAll(")", "").replaceAll("'", "").trim(); _deleteChannel(id, ch["name"] ?? ""); },
                     child: Container(padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(color: AdminTheme.red.withOpacity(0.15), borderRadius: BorderRadius.circular(8)),
                       child: const Icon(Icons.delete_outline, color: AdminTheme.red, size: 20))),
