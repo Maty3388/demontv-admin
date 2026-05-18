@@ -118,7 +118,6 @@ class _State extends State<ChannelsScreen> {
                   ]),
                 ]),
               );
-  );
 }
 
 class _AddChannelDialog extends StatefulWidget {
