@@ -111,7 +111,7 @@ class _State extends State<ChannelsScreen> {
                     const SizedBox(height: 2),
                     Text(ch["category"] ?? "", style: const TextStyle(color: AdminTheme.textSecondary, fontSize: 11)),
                   ])),
-                  Row(children: [
+                  Row(mainAxisSize: MainAxisSize.min, children: [
                   GestureDetector(
                     onTap: () { final raw = (ch["_id"] ?? ch["id"] ?? "").toString(); final id = raw.replaceAll("ObjectId(", "").replaceAll(")", "").replaceAll("'", "").trim(); _deleteChannel(id, ch["name"] ?? ""); },
                     child: Container(padding: const EdgeInsets.all(8),
