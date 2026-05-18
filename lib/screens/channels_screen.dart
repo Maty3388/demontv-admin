@@ -70,7 +70,6 @@ class _State extends State<ChannelsScreen> {
     ));
     if (confirm == true) {
       final r = await AdminApi.deleteChannel(id);
-      final r = await AdminApi.deleteChannel(id);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Respuesta: ${r.toString()}"), duration: const Duration(seconds: 4)));
       if (r["success"] == true) { _load(); }
     }
