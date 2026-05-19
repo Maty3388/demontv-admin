@@ -42,10 +42,13 @@ class _State extends State<ChannelsScreen> {
       ],
     ));
     if (confirm == true) {
+      await AdminApi.loadToken();
       final r = await AdminApi.deleteChannel(id);
       if (r["success"] == true) {
         _load();
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Canal eliminado"), backgroundColor: AdminTheme.red));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: ${r.toString()}"), backgroundColor: Colors.orange));
       }
     }
   }
