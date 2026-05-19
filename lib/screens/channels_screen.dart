@@ -33,6 +33,7 @@ class _State extends State<ChannelsScreen> {
 
   Future<void> _deleteChannel(String id, String name) async {
     await AdminApi.loadToken();
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Token: ${AdminApi.token?.substring(0,20) ?? "NULL"}"), duration: Duration(seconds: 4)));
     final r = await AdminApi.deleteChannel(id);
     if (r["success"] == true) {
       _load();
