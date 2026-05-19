@@ -83,7 +83,7 @@ class _State extends State<ChannelsScreen> {
                   IconButton(icon: const Icon(Icons.edit_outlined, color: AdminTheme.cyan, size: 20),
                     onPressed: () => showDialog(context: context, builder: (_) => _EditChannelDialog(id: id, channel: ch, onEdited: _load))),
                   IconButton(icon: const Icon(Icons.delete_outline, color: AdminTheme.red, size: 20),
-                    onPressed: () => _deleteChannel(id, ch["name"] ?? "")),
+                    onPressed: () { ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Eliminando: $id"))); _deleteChannel(id, ch["name"] ?? ""); }),
                 ]),
               );
             }),
