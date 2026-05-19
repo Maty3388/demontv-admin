@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'services/api.dart';
 import 'package:flutter/services.dart';
 import 'theme/theme.dart';
 import 'screens/login_screen.dart';
@@ -11,7 +12,9 @@ import 'screens/channels_screen.dart';
 import 'screens/spin_screen.dart';
 import 'screens/version_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await AdminApi.loadToken();
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
