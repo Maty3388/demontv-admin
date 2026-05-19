@@ -8,6 +8,8 @@ class ChannelsScreen extends StatefulWidget {
   @override State<ChannelsScreen> createState() => _ChannelsState();
 }
 
+final _scaffoldKey = GlobalKey<ScaffoldMessengerState>();
+
 class _ChannelsState extends State<ChannelsScreen> {
   List _channels = [];
   bool _loading = true;
@@ -24,19 +26,23 @@ class _ChannelsState extends State<ChannelsScreen> {
     await AdminApi.loadToken();
     try {
       final r = await AdminApi.deleteChannel(id);
+      if (!mounted) return;
       if (r["success"] == true) {
         _load();
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Canal eliminado"), backgroundColor: Colors.red));
+        _scaffoldKey.currentState?.showSnackBar(const SnackBar(content: Text("Canal eliminado"), backgroundColor: Colors.red));
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: ${r.toString()}"), backgroundColor: Colors.orange));
+        _scaffoldKey.currentState?.showSnackBar(SnackBar(content: Text("Error: ${r.toString()}"), backgroundColor: Colors.orange));
       }
     } catch(e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Excepcion: $e"), backgroundColor: Colors.red));
+      if (!mounted) return;
+      _scaffoldKey.currentState?.showSnackBar(SnackBar(content: Text("Excepcion: $e"), backgroundColor: Colors.red));
     }
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
+  Widget build(BuildContext context) => ScaffoldMessenger(
+    key: _scaffoldKey,
+    child: Scaffold(
     backgroundColor: AdminTheme.bg,
     appBar: AppBar(
       backgroundColor: AdminTheme.surface,
@@ -80,7 +86,7 @@ class _ChannelsState extends State<ChannelsScreen> {
                 ]),
               );
             }),
-  );
+  ));
 }
 
 class _AddChannelDialog extends StatefulWidget {
