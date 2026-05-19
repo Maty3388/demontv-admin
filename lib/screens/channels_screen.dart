@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/api.dart';
-import '../theme/admin_theme.dart';
+import '../theme/theme.dart';
 import 'import_m3u_screen.dart';
 
 class ChannelsScreen extends StatefulWidget {
