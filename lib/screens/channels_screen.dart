@@ -22,21 +22,18 @@ class _ChannelsState extends State<ChannelsScreen> {
     setState(() { _channels = r["channels"] ?? []; _loading = false; });
   }
 
-  Future<void> _delete(String id, String name) async {
-    await AdminApi.loadToken();
-    try {
-      final r = await AdminApi.deleteChannel(id);
-      if (!mounted) return;
-      if (r["success"] == true) {
-        _load();
-        _scaffoldKey.currentState?.showSnackBar(const SnackBar(content: Text("Canal eliminado"), backgroundColor: Colors.red));
-      } else {
-        _scaffoldKey.currentState?.showSnackBar(SnackBar(content: Text("Error: ${r.toString()}"), backgroundColor: Colors.orange));
-      }
-    } catch(e) {
-      if (!mounted) return;
-      _scaffoldKey.currentState?.showSnackBar(SnackBar(content: Text("Excepcion: $e"), backgroundColor: Colors.red));
-    }
+  void _delete(String id, String name) {
+    AdminApi.loadToken().then((_) {
+      AdminApi.deleteChannel(id).then((r) {
+        if (!mounted) return;
+        if (r["success"] == true) {
+          setState(() => _channels.removeWhere((ch) => (ch["_id"] ?? ch["id"] ?? "").toString().contains(id)));
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Canal eliminado"), backgroundColor: Colors.red));
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: ${r.toString()}"), backgroundColor: Colors.orange));
+        }
+      });
+    });
   }
 
   @override
