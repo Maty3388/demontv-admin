@@ -28,10 +28,10 @@ class _ChannelsState extends State<ChannelsScreen> {
         _load();
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Canal eliminado"), backgroundColor: Colors.red));
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: \${r.toString()}"), backgroundColor: Colors.orange));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: ${r.toString()}"), backgroundColor: Colors.orange));
       }
     } catch(e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Excepcion: \$e"), backgroundColor: Colors.red));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Excepcion: $e"), backgroundColor: Colors.red));
     }
   }
 
@@ -76,7 +76,7 @@ class _ChannelsState extends State<ChannelsScreen> {
                   IconButton(icon: const Icon(Icons.edit_outlined, color: AdminTheme.cyan, size: 20),
                     onPressed: () => showDialog(context: context, builder: (_) => _EditChannelDialog(id: id, channel: ch, onEdited: _load))),
                   IconButton(icon: const Icon(Icons.delete_outline, color: AdminTheme.red, size: 20),
-                    onPressed: () { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("BOTON PRESIONADO"))); }),
+                    onPressed: () => _delete(id, ch["name"] ?? "")),
                 ]),
               );
             }),
