@@ -5,10 +5,10 @@ import 'import_m3u_screen.dart';
 
 class ChannelsScreen extends StatefulWidget {
   const ChannelsScreen({super.key});
-  @override State<ChannelsScreen> createState() => _State();
+  @override State<ChannelsScreen> createState() => _ChannelsState();
 }
 
-class _State extends State<ChannelsScreen> {
+class _ChannelsState extends State<ChannelsScreen> {
   List _channels = [];
   bool _loading = true;
 
@@ -20,41 +20,30 @@ class _State extends State<ChannelsScreen> {
     setState(() { _channels = r["channels"] ?? []; _loading = false; });
   }
 
-  void _showImportOptions() => showDialog(context: context, builder: (ctx) => AlertDialog(
-    backgroundColor: AdminTheme.surface,
-    title: const Text("Importar Canales", style: TextStyle(color: Colors.white)),
-    content: Column(mainAxisSize: MainAxisSize.min, children: [
-      ListTile(leading: const Icon(Icons.file_upload, color: AdminTheme.cyan), title: const Text("Desde URL M3U", style: TextStyle(color: Colors.white)),
-        onTap: () { Navigator.pop(ctx); Navigator.push(context, MaterialPageRoute(builder: (_) => ImportM3uScreen(onImported: _load))); }),
-      ListTile(leading: const Icon(Icons.paste, color: AdminTheme.cyan), title: const Text("Pegar M3U", style: TextStyle(color: Colors.white)),
-        onTap: () { Navigator.pop(ctx); Navigator.push(context, MaterialPageRoute(builder: (_) => ImportM3uScreen(onImported: _load, pasteMode: true))); }),
-    ]),
-  ));
-
-  Future<void> _deleteChannel(String id, String name) async {
+  Future<void> _delete(String id, String name) async {
     await AdminApi.loadToken();
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Token: ${AdminApi.token?.substring(0,20) ?? "NULL"}"), duration: Duration(seconds: 4)));
     try {
-    final r = await AdminApi.deleteChannel(id);
-    if (r["success"] == true) {
-      _load();
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Canal eliminado"), backgroundColor: AdminTheme.red));
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: ${r.toString()}"), backgroundColor: Colors.orange));
+      final r = await AdminApi.deleteChannel(id);
+      if (r["success"] == true) {
+        _load();
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Canal eliminado"), backgroundColor: Colors.red));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: \${r.toString()}"), backgroundColor: Colors.orange));
+      }
+    } catch(e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Excepcion: \$e"), backgroundColor: Colors.red));
     }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Excepcion: $e"), backgroundColor: Colors.red));
-    }
+  }
 
   @override
   Widget build(BuildContext context) => Scaffold(
     backgroundColor: AdminTheme.bg,
     appBar: AppBar(
       backgroundColor: AdminTheme.surface,
-      title: Text("Canales (${_channels.length})", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+      title: Text("Canales (\${_channels.length})", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       actions: [
         IconButton(icon: const Icon(Icons.add, color: AdminTheme.cyan), onPressed: () => showDialog(context: context, builder: (_) => _AddChannelDialog(onAdded: _load))),
-        IconButton(icon: const Icon(Icons.playlist_add, color: AdminTheme.gold), onPressed: _showImportOptions),
+        IconButton(icon: const Icon(Icons.playlist_add, color: AdminTheme.gold), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ImportM3uScreen(onImported: _load)))),
         IconButton(icon: const Icon(Icons.refresh, color: AdminTheme.textSecondary), onPressed: _load),
       ],
     ),
@@ -87,7 +76,7 @@ class _State extends State<ChannelsScreen> {
                   IconButton(icon: const Icon(Icons.edit_outlined, color: AdminTheme.cyan, size: 20),
                     onPressed: () => showDialog(context: context, builder: (_) => _EditChannelDialog(id: id, channel: ch, onEdited: _load))),
                   IconButton(icon: const Icon(Icons.delete_outline, color: AdminTheme.red, size: 20),
-                    onPressed: () { ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Eliminando: $id"))); _deleteChannel(id, ch["name"] ?? ""); }),
+                    onPressed: () => _delete(id, ch["name"] ?? "")),
                 ]),
               );
             }),
@@ -123,6 +112,7 @@ class _AddState extends State<_AddChannelDialog> {
     title: const Text("Agregar Canal", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
     content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
       _f(_name, "Nombre *"), _f(_cat, "Categoria"), _f(_logo, "URL logo"), _f(_url, "URL stream *"),
+      if (_error != null) Padding(padding: const EdgeInsets.only(top: 8), child: Text(_error!, style: const TextStyle(color: Colors.red, fontSize: 12))),
     ])),
     actions: [
       TextButton(onPressed: () => Navigator.pop(context), child: const Text("CANCELAR", style: TextStyle(color: AdminTheme.textSecondary))),
@@ -168,6 +158,7 @@ class _EditState extends State<_EditChannelDialog> {
     title: const Text("Editar Canal", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
     content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
       _f(_name, "Nombre *"), _f(_cat, "Categoria"), _f(_logo, "URL logo"), _f(_url, "URL stream *"),
+      if (_error != null) Padding(padding: const EdgeInsets.only(top: 8), child: Text(_error!, style: const TextStyle(color: Colors.red, fontSize: 12))),
     ])),
     actions: [
       TextButton(onPressed: () => Navigator.pop(context), child: const Text("CANCELAR", style: TextStyle(color: AdminTheme.textSecondary))),
