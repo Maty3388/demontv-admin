@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
 class AdminApi {
@@ -29,8 +30,17 @@ class AdminApi {
 
   static Future<Map<String, dynamic>> login(String email, String pass) async {
     final r = await _post('/admin/login', {'email': email, 'password': pass});
-    if (r['token'] != null) token = r['token'];
+    if (r['token'] != null) {
+      token = r['token'];
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('admin_token', token!);
+    }
     return r;
+  }
+
+  static Future<void> loadToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    token = prefs.getString('admin_token');
   }
 
   static Future<Map<String, dynamic>> getStats()   => _get('/admin/stats');
