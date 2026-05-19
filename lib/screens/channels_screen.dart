@@ -32,24 +32,13 @@ class _State extends State<ChannelsScreen> {
   ));
 
   Future<void> _deleteChannel(String id, String name) async {
-    final confirm = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(
-      backgroundColor: AdminTheme.surface,
-      title: const Text("Eliminar canal?", style: TextStyle(color: Colors.white)),
-      content: Text(name, style: const TextStyle(color: AdminTheme.textSecondary)),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text("Cancelar", style: TextStyle(color: AdminTheme.textSecondary))),
-        TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text("ELIMINAR", style: TextStyle(color: AdminTheme.red, fontWeight: FontWeight.bold))),
-      ],
-    ));
-    if (confirm != null && confirm) {
-      await AdminApi.loadToken();
-      final r = await AdminApi.deleteChannel(id);
-      if (r["success"] == true) {
-        _load();
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Canal eliminado"), backgroundColor: AdminTheme.red));
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: ${r.toString()}"), backgroundColor: Colors.orange));
-      }
+    await AdminApi.loadToken();
+    final r = await AdminApi.deleteChannel(id);
+    if (r["success"] == true) {
+      _load();
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Canal eliminado"), backgroundColor: AdminTheme.red));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: ${r.toString()}"), backgroundColor: Colors.orange));
     }
   }
 
