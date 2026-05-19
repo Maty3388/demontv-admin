@@ -34,6 +34,7 @@ class _State extends State<ChannelsScreen> {
   Future<void> _deleteChannel(String id, String name) async {
     await AdminApi.loadToken();
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Token: ${AdminApi.token?.substring(0,20) ?? "NULL"}"), duration: Duration(seconds: 4)));
+    try {
     final r = await AdminApi.deleteChannel(id);
     if (r["success"] == true) {
       _load();
@@ -41,7 +42,9 @@ class _State extends State<ChannelsScreen> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: ${r.toString()}"), backgroundColor: Colors.orange));
     }
-  }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Excepcion: $e"), backgroundColor: Colors.red));
+    }
 
   @override
   Widget build(BuildContext context) => Scaffold(
