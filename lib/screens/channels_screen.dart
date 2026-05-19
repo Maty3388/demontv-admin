@@ -41,7 +41,7 @@ class _State extends State<ChannelsScreen> {
         TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text("ELIMINAR", style: TextStyle(color: AdminTheme.red, fontWeight: FontWeight.bold))),
       ],
     ));
-    if (confirm == true) {
+    if (confirm != null && confirm) {
       await AdminApi.loadToken();
       final r = await AdminApi.deleteChannel(id);
       if (r["success"] == true) {
