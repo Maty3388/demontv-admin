@@ -2,9 +2,15 @@ name: Build APK
 on:
   push:
     branches: [ master, main ]
+    tags:
+      - 'v*'
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -13,16 +19,29 @@ jobs:
           java-version: '17'
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.19.6'
+          flutter-version: '3.22.0'
       - name: Setup project
         run: |
           flutter create --org com.demontv --project-name demontv_admin tmp_app
           cp -r tmp_app/android .
           rm -rf tmp_app
-          sed -i 's/<manifest xmlns:android="http:\/\/schemas.android.com\/apk\/res\/android">/<manifest xmlns:android="http:\/\/schemas.android.com\/apk\/res\/android">\n    <uses-permission android:name="android.permission.INTERNET"\/>/g' android/app/src/main/AndroidManifest.xml
+          sed -i 's/<manifest xmlns:android="http:\/\/schemas.android.com\/apk\/res\/android">/<manifest xmlns:android="http:\/\/schemas.android.com\/apk\/res\/android">\n    <uses-permission android:name="android.permission.INTERNET\/>/' android/app/src/main/AndroidManifest.xml
+          sed -i 's/signingConfig = signingConfigs.debug/signingConfig = signingConfigs.release/' android/app/build.gradle
+          sed -i '/buildTypes {/i\    signingConfigs { release { def p=new Properties(); p.load(new FileInputStream(rootProject.file("key.properties"))); storeFile file(p["storeFile"]); storePassword p["storePassword"]; keyAlias p["keyAlias"]; keyPassword p["keyPassword"] } }' android/app/build.gradle
+      - name: Setup keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/demontv.keystore
+          printf "storePassword=${{ secrets.KEYSTORE_PASSWORD }}\nkeyPassword=${{ secrets.KEY_PASSWORD }}\nkeyAlias=${{ secrets.KEY_ALIAS }}\nstoreFile=demontv.keystore\n" > android/key.properties
       - run: flutter pub get
       - run: flutter build apk --release --no-tree-shake-icons
-      - uses: actions/upload-artifact@v4
+      - name: Get version
+        id: ver
+        run: echo "VERSION=$(grep '^version:' pubspec.yaml | cut -d' ' -f2 | cut -d'+' -f1)" >> $GITHUB_OUTPUT
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
         with:
-          name: demontv-admin-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          tag_name: v${{ steps.ver.outputs.VERSION }}
+          files: build/app/outputs/flutter-apk/app-release.apk
+          generate_release_notes: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
