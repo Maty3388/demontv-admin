@@ -37,8 +37,8 @@ class _State extends State<MonitorScreen> {
 
   String get _lastUpdateStr {
     final diff = DateTime.now().difference(_lastUpdate);
-    if (diff.inSeconds < 60) return 'hace \${diff.inSeconds}s';
-    return 'hace \${diff.inMinutes}m';
+    if (diff.inSeconds < 60) return 'hace ${diff.inSeconds}s';
+    return 'hace ${diff.inMinutes}m';
   }
 
   @override
@@ -48,7 +48,7 @@ class _State extends State<MonitorScreen> {
       backgroundColor: AdminTheme.surface,
       title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         const Text('Monitor en Vivo', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-        Text('Actualizado \$_lastUpdateStr', style: const TextStyle(color: AdminTheme.textSecondary, fontSize: 11)),
+        Text('Actualizado $_lastUpdateStr', style: const TextStyle(color: AdminTheme.textSecondary, fontSize: 11)),
       ]),
       actions: [
         Container(margin: const EdgeInsets.only(right: 8),
@@ -66,13 +66,13 @@ class _State extends State<MonitorScreen> {
       color: AdminTheme.cyan,
       child: ListView(padding: const EdgeInsets.all(16), children: [
         Row(children: [
-          _StatCard('Viendo', '\${_watching['count'] ?? 0}', Icons.play_circle, AdminTheme.cyan),
+          _StatCard('Viendo', '${_watching['count'] ?? 0}', Icons.play_circle, AdminTheme.cyan),
           const SizedBox(width: 10),
-          _StatCard('Activos', '\${_stats['activos'] ?? 0}', Icons.check_circle, Colors.green),
+          _StatCard('Activos', '${_stats['activos'] ?? 0}', Icons.check_circle, Colors.green),
           const SizedBox(width: 10),
-          _StatCard('Vencidos', '\${_stats['vencidos'] ?? 0}', Icons.cancel, AdminTheme.red),
+          _StatCard('Vencidos', '${_stats['vencidos'] ?? 0}', Icons.cancel, AdminTheme.red),
           const SizedBox(width: 10),
-          _StatCard('Total', '\${_stats['total'] ?? 0}', Icons.people, AdminTheme.gold),
+          _StatCard('Total', '${_stats['total'] ?? 0}', Icons.people, AdminTheme.gold),
         ]),
         const SizedBox(height: 16),
         Container(
@@ -82,7 +82,7 @@ class _State extends State<MonitorScreen> {
             Row(children: [
               Container(width: 8, height: 8, decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.green)),
               const SizedBox(width: 8),
-              Text('Viendo ahora (\${_watching['count'] ?? 0})', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+              Text('Viendo ahora (${_watching['count'] ?? 0})', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
               const Spacer(),
               Text('↻ cada 10s', style: const TextStyle(color: AdminTheme.textHint, fontSize: 10)),
             ]),
@@ -143,9 +143,9 @@ class _ViewerTile extends StatelessWidget {
   String _timeAgo(String iso) {
     try {
       final diff = DateTime.now().difference(DateTime.parse(iso));
-      if (diff.inSeconds < 60) return '\${diff.inSeconds}s';
-      if (diff.inMinutes < 60) return '\${diff.inMinutes}m';
-      return '\${diff.inHours}h';
+      if (diff.inSeconds < 60) return '${diff.inSeconds}s';
+      if (diff.inMinutes < 60) return '${diff.inMinutes}m';
+      return '${diff.inHours}h';
     } catch (_) { return ''; }
   }
 
@@ -197,7 +197,7 @@ class _StatsRow extends StatelessWidget {
       Container(width: 10, height: 10, decoration: BoxDecoration(shape: BoxShape.circle, color: color)),
       const SizedBox(width: 10),
       Expanded(child: Text(label, style: const TextStyle(color: AdminTheme.textSecondary, fontSize: 13))),
-      Text('\$value', style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 15)),
+      Text('$value', style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 15)),
     ]),
   );
 }
