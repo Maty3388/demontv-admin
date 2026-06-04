@@ -90,7 +90,7 @@ class _MovieCard extends StatelessWidget {
           Expanded(child: ClipRRect(borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
             child: movie['poster']?.isNotEmpty == true
               ? Image.network(movie['poster'], fit: BoxFit.cover, width: double.infinity,
-                  errorWidget: (_, __, ___) => const Icon(Icons.movie, color: AdminTheme.textHint, size: 40))
+                  errorBuilder: (_, __, ___) => const Icon(Icons.movie, color: AdminTheme.textHint, size: 40))
               : const Center(child: Icon(Icons.movie, color: AdminTheme.textHint, size: 40)))),
           Padding(padding: const EdgeInsets.all(4),
             child: Text(movie['title'] ?? '', maxLines: 2, overflow: TextOverflow.ellipsis,

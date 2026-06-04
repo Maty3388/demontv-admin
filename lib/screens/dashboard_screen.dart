@@ -288,7 +288,7 @@ class _ClientCard extends StatelessWidget {
             onTap:()=>showDialog(context:ctx,builder:(c)=>AlertDialog(
               backgroundColor:AdminTheme.surface,
               title:const Text('Eliminar cliente',style:TextStyle(color:Colors.white)),
-              content:Text('¿Eliminar \${client['email']}?',style:const TextStyle(color:AdminTheme.textSecondary)),
+              content:Text('¿Eliminar ${client['email']}?',style:const TextStyle(color:AdminTheme.textSecondary)),
               actions:[
                 TextButton(onPressed:()=>Navigator.pop(c),child:const Text('Cancelar',style:TextStyle(color:AdminTheme.textSecondary))),
                 TextButton(onPressed:()async{Navigator.pop(c);await AdminApi.deleteClient(client['id']??'');onRefresh();},child:const Text('Eliminar',style:TextStyle(color:AdminTheme.red,fontWeight:FontWeight.bold))),

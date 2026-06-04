@@ -25,7 +25,7 @@ class _CS extends State<ChannelsScreen> {
     setState(() => _loading = true);
     final r = await AdminApi.getChannels();
     final all = r['channels'] ?? [];
-    final cats = ['Todos', ...{...all.map((c) => c['category']?.toString() ?? 'General')}.toList()..sort()];
+    final catSet = <String>{}; for (final c in all) catSet.add(c['category']?.toString() ?? 'General'); final catList = catSet.toList()..sort(); final cats = ['Todos', ...catList];
     setState(() { _ch = all; _categories = cats; _applyFilter(); _loading = false; });
   }
 
