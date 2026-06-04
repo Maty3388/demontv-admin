@@ -2,8 +2,6 @@ name: Build APK
 on:
   push:
     branches: [ master, main ]
-    tags:
-      - 'v*'
 permissions:
   contents: write
 jobs:
@@ -25,11 +23,7 @@ jobs:
           flutter create --org com.demontv --project-name demontv_admin tmp_app
           cp -r tmp_app/android .
           rm -rf tmp_app
-          python3 -c "
-c=open('android/app/src/main/AndroidManifest.xml').read()
-c=c.replace('<manifest xmlns:android="http://schemas.android.com/apk/res/android">','<manifest xmlns:android="http://schemas.android.com/apk/res/android"><uses-permission android:name="android.permission.INTERNET"/>')
-open('android/app/src/main/AndroidManifest.xml','w').write(c)
-"
+          sed -i 's|<manifest xmlns:android="http://schemas.android.com/apk/res/android">|<manifest xmlns:android="http://schemas.android.com/apk/res/android"><uses-permission android:name="android.permission.INTERNET"/>|' android/app/src/main/AndroidManifest.xml
           sed -i 's/signingConfig = signingConfigs.debug/signingConfig = signingConfigs.release/' android/app/build.gradle
           sed -i '/buildTypes {/i\    signingConfigs { release { def p=new Properties(); p.load(new FileInputStream(rootProject.file("key.properties"))); storeFile file(p["storeFile"]); storePassword p["storePassword"]; keyAlias p["keyAlias"]; keyPassword p["keyPassword"] } }' android/app/build.gradle
       - name: Setup keystore
