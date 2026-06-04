@@ -32,7 +32,7 @@ class DemonTvAdminApp extends StatelessWidget {
     title: 'DemonTv Plus Admin',
     debugShowCheckedModeBanner: false,
     theme: AdminTheme.dark,
-    initialRoute: '/login',
+    initialRoute: AdminApi.token != null ? '/dashboard' : '/login',
     routes: {
       '/login':     (_) => const AdminLoginScreen(),
       '/dashboard': (_) => const MainNavScreen(),
