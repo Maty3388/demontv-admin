@@ -51,7 +51,7 @@ class _VersionState extends State<VersionScreen> {
         setState(() => _msg = r['error'] ?? 'Error');
       }
     } catch (e) {
-      setState(() => _msg = 'Error: \$e');
+      setState(() => _msg = 'Error: $e');
     }
     setState(() => _loading = false);
   }

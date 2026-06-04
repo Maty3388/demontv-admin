@@ -11,6 +11,7 @@ import 'screens/series_screen.dart';
 import 'screens/channels_screen.dart';
 import 'screens/spin_screen.dart';
 import 'screens/version_screen.dart';
+import 'screens/resellers_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -55,6 +56,8 @@ class _NavState extends State<MainNavScreen> {
     SeriesAdminScreen(),
     LogsScreen(),
     VersionScreen(),
+    ResellersScreen(),
+    SpinScreen(),
   ];
 
   @override
@@ -79,6 +82,8 @@ class _NavState extends State<MainNavScreen> {
         _NavBtn(icon: Icons.tv_outlined, activeIcon: Icons.tv, label: 'Series', index: 4, selected: _idx, onTap: (i) => setState(() => _idx = i)),
         _NavBtn(icon: Icons.history_outlined, activeIcon: Icons.history, label: 'Logs', index: 5, selected: _idx, onTap: (i) => setState(() => _idx = i)),
         _NavBtn(icon: Icons.system_update_outlined, activeIcon: Icons.system_update, label: 'Update', index: 6, selected: _idx, onTap: (i) => setState(() => _idx = i)),
+        _NavBtn(icon: Icons.store_outlined, activeIcon: Icons.store, label: 'Resellers', index: 7, selected: _idx, onTap: (i) => setState(() => _idx = i)),
+        _NavBtn(icon: Icons.casino_outlined, activeIcon: Icons.casino, label: 'Ruleta', index: 8, selected: _idx, onTap: (i) => setState(() => _idx = i)),
       ]),
     )),
   );

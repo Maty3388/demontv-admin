@@ -1,4 +1,7 @@
+import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/services.dart';
 import '../services/api.dart';
 import '../theme/theme.dart';
@@ -17,6 +20,7 @@ class _State extends State<DashboardScreen> {
   String _search = '';
   final _searchCtrl = TextEditingController();
   bool _filterOpen = false;
+  Timer? _debounce;
 
   @override
   void initState() { super.initState(); _load(); }
@@ -37,6 +41,8 @@ class _State extends State<DashboardScreen> {
     body: SafeArea(child: Column(children: [
       _header(),
       BalanceCard(balance: _stats?['balance'] ?? 0, extras: _stats?['extras'] ?? 0),
+      const SizedBox(height: 12),
+      _statsChart(),
       const SizedBox(height: 12),
       _clientsHeader(),
       _toolbar(),
@@ -60,11 +66,52 @@ class _State extends State<DashboardScreen> {
       ]),
       const Spacer(),
       GestureDetector(
+        onTap: _showNotify,
+        child: Container(padding:const EdgeInsets.all(8),margin:const EdgeInsets.only(right:8),decoration:BoxDecoration(color:AdminTheme.surface,borderRadius:BorderRadius.circular(10)),child:const Icon(Icons.notifications_outlined,color:AdminTheme.cyan,size:20)),
+      ),
+      GestureDetector(
         onTap: _showProfile,
         child: Container(padding:const EdgeInsets.all(8),decoration:BoxDecoration(gradient:const LinearGradient(colors:[Color(0xFFFFD700),Color(0xFFFF8C00)]),borderRadius:BorderRadius.circular(10)),child:const Icon(Icons.verified,color:Colors.white,size:20)),
       ),
     ]),
   );
+
+  Widget _statsChart() {
+    if (_stats == null) return const SizedBox();
+    final activos = (_stats!['activos'] ?? 0).toDouble();
+    final vencidos = (_stats!['vencidos'] ?? 0).toDouble();
+    final porVencer = (_stats!['porVencer'] ?? 0).toDouble();
+    final bloqueados = (_stats!['bloqueados'] ?? 0).toDouble();
+    final total = activos + vencidos + porVencer + bloqueados;
+    if (total == 0) return const SizedBox();
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: AdminTheme.surface, borderRadius: BorderRadius.circular(14)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const Text('Distribución de clientes', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+        const SizedBox(height: 16),
+        Row(children: [
+          SizedBox(width: 120, height: 120, child: PieChart(PieChartData(
+            sectionsSpace: 2,
+            centerSpaceRadius: 30,
+            sections: [
+              PieChartSectionData(value: activos, color: Colors.green, title: '', radius: 30),
+              PieChartSectionData(value: vencidos, color: AdminTheme.red, title: '', radius: 30),
+              PieChartSectionData(value: porVencer, color: AdminTheme.gold, title: '', radius: 30),
+              PieChartSectionData(value: bloqueados, color: Colors.orange, title: '', radius: 30),
+            ]))),
+          const SizedBox(width: 20),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            _LegendItem('Activos', activos.toInt(), Colors.green),
+            _LegendItem('Vencidos', vencidos.toInt(), AdminTheme.red),
+            _LegendItem('Por vencer', porVencer.toInt(), AdminTheme.gold),
+            _LegendItem('Bloqueados', bloqueados.toInt(), Colors.orange),
+          ])),
+        ]),
+      ]),
+    );
+  }
 
   Widget _clientsHeader() => Container(
     margin: const EdgeInsets.symmetric(horizontal:16),
@@ -80,6 +127,11 @@ class _State extends State<DashboardScreen> {
     padding: const EdgeInsets.fromLTRB(16,10,16,0),
     child: Row(children:[
       GestureDetector(
+        onTap: _exportCSV,
+        child: Container(width:44,height:44,decoration:BoxDecoration(color:Colors.green.withOpacity(0.15),borderRadius:BorderRadius.circular(10)),child:const Icon(Icons.download_outlined,color:Colors.green,size:22)),
+      ),
+      const SizedBox(width:10),
+      GestureDetector(
         onTap: ()=>setState(()=>_filterOpen=!_filterOpen),
         child: Container(width:44,height:44,decoration:BoxDecoration(color:_filterOpen?const Color(0xFFFF6B35):AdminTheme.surface,borderRadius:BorderRadius.circular(10)),child:const Icon(Icons.menu,color:Colors.white)),
       ),
@@ -88,7 +140,7 @@ class _State extends State<DashboardScreen> {
         height:44,decoration:BoxDecoration(color:AdminTheme.surface,borderRadius:BorderRadius.circular(10)),
         child:TextField(
           controller:_searchCtrl,
-          onChanged:(v){_search=v;_load();},
+          onChanged:(v){ _search=v; _debounce?.cancel(); _debounce=Timer(const Duration(milliseconds:500),()=>_load()); },
           style:const TextStyle(color:Colors.white,fontSize:14),
           decoration:const InputDecoration(prefixIcon:Icon(Icons.search,color:AdminTheme.textHint,size:20),hintText:'Buscar',border:InputBorder.none,enabledBorder:InputBorder.none,focusedBorder:InputBorder.none,contentPadding:EdgeInsets.symmetric(vertical:12)),
         ),
@@ -132,6 +184,58 @@ class _State extends State<DashboardScreen> {
       child: const Icon(Icons.add,color:Colors.white,size:30),
     ),
   );
+
+  Future<void> _exportCSV() async {
+    try {
+      final r = await AdminApi.getClients(filter: _filter == 'todos' ? null : _filter, search: _search.isEmpty ? null : _search);
+      final clients = r['clients'] ?? [];
+      final rows = ['Email,Vencimiento,Estado,Dias restantes'];
+      for (final c in clients) {
+        final email = c['email'] ?? '';
+        final exp = (c['subscription_end'] ?? '').toString().length >= 10 ? c['subscription_end'].toString().substring(0,10) : '';
+        final blocked = c['blocked'] == true ? 'Bloqueado' : (c['daysLeft'] ?? 0) < 0 ? 'Vencido' : 'Activo';
+        final days = c['daysLeft'] ?? 0;
+        rows.add('\$email,\$exp,\$blocked,\$days');
+      }
+      final csv = rows.join('\n');
+      final dir = Directory.systemTemp;
+      final file = File('\${dir.path}/clientes_demontv.csv');
+      await file.writeAsString(csv);
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('CSV exportado: \${clients.length} clientes'), backgroundColor: Colors.green));
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: \$e'), backgroundColor: AdminTheme.red));
+    }
+  }
+
+  void _showNotify() => showDialog(context:context, builder:(ctx) {
+    final titleCtrl = TextEditingController();
+    final msgCtrl = TextEditingController();
+    bool sending = false;
+    return StatefulBuilder(builder:(ctx, set) => AlertDialog(
+      backgroundColor: AdminTheme.surface,
+      title: const Text('Notificar Resellers', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+      content: Column(mainAxisSize: MainAxisSize.min, children: [
+        TextField(controller: titleCtrl, style: const TextStyle(color: Colors.white),
+          decoration: const InputDecoration(hintText: 'Título', prefixIcon: Icon(Icons.title, size: 18))),
+        const SizedBox(height: 12),
+        TextField(controller: msgCtrl, maxLines: 3, style: const TextStyle(color: Colors.white),
+          decoration: const InputDecoration(hintText: 'Mensaje', prefixIcon: Icon(Icons.message_outlined, size: 18))),
+      ]),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar', style: TextStyle(color: AdminTheme.textSecondary))),
+        TextButton(onPressed: sending ? null : () async {
+          if (titleCtrl.text.isEmpty || msgCtrl.text.isEmpty) return;
+          set(() => sending = true);
+          await AdminApi.notifyResellers(titleCtrl.text.trim(), msgCtrl.text.trim());
+          Navigator.pop(ctx);
+          if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Notificación enviada'), backgroundColor: AdminTheme.cyan));
+        }, child: sending
+          ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: AdminTheme.cyan))
+          : const Text('ENVIAR', style: TextStyle(color: AdminTheme.cyan, fontWeight: FontWeight.bold))),
+      ]));
+  });
 
   void _showProfile() => showModalBottomSheet(
     context:context,backgroundColor:AdminTheme.surface,
@@ -177,6 +281,19 @@ class _ClientCard extends StatelessWidget {
           Container(width:1,height:16,color:AdminTheme.border),
           const SizedBox(width:8),
           GestureDetector(onTap:()=>showDialog(context:ctx,builder:(_)=>_ExtendDialog(client:client,onDone:onRefresh)),child:const Icon(Icons.calendar_month_outlined,color:AdminTheme.textSecondary,size:20)),
+          const SizedBox(width:8),
+          Container(width:1,height:16,color:AdminTheme.border),
+          const SizedBox(width:8),
+          GestureDetector(
+            onTap:()=>showDialog(context:ctx,builder:(c)=>AlertDialog(
+              backgroundColor:AdminTheme.surface,
+              title:const Text('Eliminar cliente',style:TextStyle(color:Colors.white)),
+              content:Text('¿Eliminar \${client['email']}?',style:const TextStyle(color:AdminTheme.textSecondary)),
+              actions:[
+                TextButton(onPressed:()=>Navigator.pop(c),child:const Text('Cancelar',style:TextStyle(color:AdminTheme.textSecondary))),
+                TextButton(onPressed:()async{Navigator.pop(c);await AdminApi.deleteClient(client['id']??'');onRefresh();},child:const Text('Eliminar',style:TextStyle(color:AdminTheme.red,fontWeight:FontWeight.bold))),
+              ])),
+            child:const Icon(Icons.delete_outline,color:AdminTheme.red,size:20)),
         ]),
       ]),
     );
@@ -208,7 +325,7 @@ class _CreateState extends State<_CreateDialog> {
       const SizedBox(height:12),
       TextField(controller:_p,style:const TextStyle(color:Colors.white),decoration:const InputDecoration(hintText:'Contraseña')),
       const SizedBox(height:16),
-      _radio('1 MES',1),_radio('2 MES',2),
+      _radio('1 MES',1),_radio('2 MES',2),_radio('3 MES',3),
       const SizedBox(height:12),
       _toggle(),
       if(_error!=null)...[const SizedBox(height:8),Text(_error!,style:const TextStyle(color:AdminTheme.red,fontSize:12))],
@@ -320,4 +437,20 @@ class _ProfileState extends State<_ProfileSheet> {
     onTap:(){Clipboard.setData(ClipboardData(text:value));ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content:Text('$label copiado'),backgroundColor:AdminTheme.cyan,duration:const Duration(seconds:2)));},
     child:Container(padding:const EdgeInsets.symmetric(horizontal:16,vertical:14),decoration:BoxDecoration(color:AdminTheme.surfaceAlt,borderRadius:BorderRadius.circular(14)),child:Row(children:[Icon(icon,color:AdminTheme.textSecondary,size:22),const SizedBox(width:12),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(label,style:const TextStyle(color:AdminTheme.textSecondary,fontSize:12)),Text(truncate&&value.length>18?'${value.substring(0,18)}...':value,style:const TextStyle(color:Colors.white,fontSize:14))])),const Icon(Icons.content_copy_outlined,color:AdminTheme.textSecondary,size:18)])),
   );
+}
+
+class _LegendItem extends StatelessWidget {
+  final String label;
+  final int value;
+  final Color color;
+  const _LegendItem(this.label, this.value, this.color);
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 3),
+    child: Row(children: [
+      Container(width: 10, height: 10, decoration: BoxDecoration(shape: BoxShape.circle, color: color)),
+      const SizedBox(width: 8),
+      Expanded(child: Text(label, style: const TextStyle(color: AdminTheme.textSecondary, fontSize: 12))),
+      Text('$value', style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12)),
+    ]));
 }

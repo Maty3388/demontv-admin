@@ -10,16 +10,33 @@ class ChannelsScreen extends StatefulWidget {
 
 class _CS extends State<ChannelsScreen> {
   List _ch = [];
+  List _filtered = [];
   bool _loading = true;
   String _msg = '';
   bool _msgOk = true;
+  String _search = '';
+  String _catFilter = 'Todos';
+  List<String> _categories = ['Todos'];
+  final _searchCtrl = TextEditingController();
 
   @override void initState() { super.initState(); _load(); }
 
   Future<void> _load() async {
     setState(() => _loading = true);
     final r = await AdminApi.getChannels();
-    setState(() { _ch = r['channels'] ?? []; _loading = false; });
+    final all = r['channels'] ?? [];
+    final cats = ['Todos', ...{...all.map((c) => c['category']?.toString() ?? 'General')}.toList()..sort()];
+    setState(() { _ch = all; _categories = cats; _applyFilter(); _loading = false; });
+  }
+
+  void _applyFilter() {
+    setState(() {
+      _filtered = _ch.where((c) {
+        final matchCat = _catFilter == 'Todos' || c['category'] == _catFilter;
+        final matchSearch = _search.isEmpty || (c['name'] ?? '').toLowerCase().contains(_search.toLowerCase());
+        return matchCat && matchSearch;
+      }).toList();
+    });
   }
 
   void _showMsg(String msg, bool ok) => setState(() { _msg = msg; _msgOk = ok; });
@@ -38,7 +55,7 @@ class _CS extends State<ChannelsScreen> {
       backgroundColor: AdminTheme.bg,
       appBar: AppBar(
         backgroundColor: AdminTheme.surface,
-        title: Text('Canales (${_ch.length})', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: Text('Canales (${_filtered.length}/${_ch.length})', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         actions: [
           IconButton(icon: const Icon(Icons.add, color: AdminTheme.cyan), onPressed: () async {
             await showDialog(context: context, builder: (_) => _AddDialog(onAdded: _load));
@@ -46,10 +63,33 @@ class _CS extends State<ChannelsScreen> {
           IconButton(icon: const Icon(Icons.playlist_add, color: AdminTheme.gold), onPressed: () async {
             await Navigator.push(context, MaterialPageRoute(builder: (_) => ImportM3uScreen(onImported: _load)));
           }),
+          IconButton(icon: const Icon(Icons.link, color: Colors.purple), onPressed: () async {
+            await showDialog(context: context, builder: (_) => _ImportUrlDialog(onImported: _load));
+          }),
           IconButton(icon: const Icon(Icons.refresh, color: AdminTheme.textSecondary), onPressed: _load),
         ],
       ),
       body: Column(children: [
+        Padding(padding: const EdgeInsets.fromLTRB(12,8,12,4), child: Row(children: [
+          Expanded(child: TextField(
+            controller: _searchCtrl,
+            onChanged: (v) { _search = v; _applyFilter(); },
+            style: const TextStyle(color: Colors.white, fontSize: 13),
+            decoration: InputDecoration(
+              prefixIcon: const Icon(Icons.search, size: 18, color: Color(0xFF5C5C5C)),
+              hintText: 'Buscar canal...', hintStyle: const TextStyle(color: Color(0xFF5C5C5C), fontSize: 13),
+              filled: true, fillColor: const Color(0xFF1E1E1E),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10)))),
+          const SizedBox(width: 8),
+          DropdownButton<String>(
+            value: _catFilter,
+            dropdownColor: const Color(0xFF1E1E1E),
+            style: const TextStyle(color: Colors.white, fontSize: 12),
+            underline: const SizedBox(),
+            items: _categories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+            onChanged: (v) { if (v != null) { _catFilter = v; _applyFilter(); } }),
+        ])),
         if (_msg.isNotEmpty) Container(
           width: double.infinity, color: _msgOk ? Colors.green : Colors.red,
           padding: const EdgeInsets.all(10),
@@ -61,11 +101,13 @@ class _CS extends State<ChannelsScreen> {
           ? const Center(child: CircularProgressIndicator(color: AdminTheme.cyan))
           : _ch.isEmpty
             ? const Center(child: Text('No hay canales', style: TextStyle(color: AdminTheme.textSecondary)))
-            : ListView.builder(
+            : _filtered.isEmpty
+              ? const Center(child: Text('Sin resultados', style: TextStyle(color: Color(0xFF5C5C5C))))
+              : ListView.builder(
                 padding: const EdgeInsets.all(12),
-                itemCount: _ch.length,
+                itemCount: _filtered.length,
                 itemBuilder: (ctx, i) {
-                  final c = _ch[i];
+                  final c = _filtered[i];
                   final id = (c['_id'] ?? c['id'] ?? '').toString().replaceAll('ObjectId(', '').replaceAll(')', '').replaceAll("'", '').trim();
                   return Container(
                     margin: const EdgeInsets.only(bottom: 8),
@@ -86,7 +128,16 @@ class _CS extends State<ChannelsScreen> {
                       IconButton(icon: const Icon(Icons.edit_outlined, color: AdminTheme.cyan, size: 20), onPressed: () async {
                         await showDialog(context: context, builder: (_) => _EditDialog(id: id, channel: c, onEdited: () { _load(); _showMsg('Canal actualizado', true); }));
                       }),
-                      IconButton(icon: const Icon(Icons.delete_outline, color: AdminTheme.red, size: 20), onPressed: () => _delete(id)),
+                      IconButton(icon: const Icon(Icons.delete_outline, color: AdminTheme.red, size: 20), onPressed: () {
+                        showDialog(context: context, builder: (ctx) => AlertDialog(
+                          backgroundColor: const Color(0xFF1E1E1E),
+                          title: const Text('Eliminar canal', style: TextStyle(color: Colors.white)),
+                          content: Text('¿Eliminar "${c['name']}"?', style: const TextStyle(color: Color(0xFF9E9E9E))),
+                          actions: [
+                            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar', style: TextStyle(color: Color(0xFF9E9E9E)))),
+                            TextButton(onPressed: () { Navigator.pop(ctx); _delete(id); }, child: const Text('Eliminar', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold))),
+                          ]));
+                      }),
                     ]),
                   );
                 })),
@@ -187,4 +238,52 @@ class _EditDialogState extends State<_EditDialog> {
     padding: const EdgeInsets.only(bottom: 8),
     child: TextField(controller: c, style: const TextStyle(color: Colors.white, fontSize: 13),
       decoration: InputDecoration(hintText: hint, contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8))));
+}
+
+class _ImportUrlDialog extends StatefulWidget {
+  final VoidCallback onImported;
+  const _ImportUrlDialog({required this.onImported});
+  @override State<_ImportUrlDialog> createState() => _ImportUrlState();
+}
+
+class _ImportUrlState extends State<_ImportUrlDialog> {
+  final _url = TextEditingController();
+  bool _loading = false;
+  String? _error;
+  String _msg = '';
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    backgroundColor: AdminTheme.surface,
+    title: const Text('Importar M3U desde URL', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+    content: Column(mainAxisSize: MainAxisSize.min, children: [
+      TextField(controller: _url,
+        style: const TextStyle(color: Colors.white, fontSize: 13),
+        decoration: const InputDecoration(
+          hintText: 'https://...',
+          prefixIcon: Icon(Icons.link, size: 18),
+          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8))),
+      if (_error != null) ...[const SizedBox(height: 8), Text(_error!, style: const TextStyle(color: AdminTheme.red, fontSize: 12))],
+      if (_msg.isNotEmpty) ...[const SizedBox(height: 8), Text(_msg, style: const TextStyle(color: Colors.green, fontSize: 12))],
+    ]),
+    actions: [
+      TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cerrar', style: TextStyle(color: AdminTheme.textSecondary))),
+      TextButton(
+        onPressed: _loading ? null : () async {
+          if (_url.text.isEmpty) { setState(() => _error = 'Ingresá una URL'); return; }
+          setState(() { _loading = true; _error = null; _msg = ''; });
+          try {
+            final r = await AdminApi.fetchM3u(_url.text.trim());
+            final channels = r['channels'] ?? [];
+            setState(() { _msg = 'Importados \${channels.length} canales'; _loading = false; });
+            widget.onImported();
+          } catch (e) {
+            setState(() { _error = 'Error: \$e'; _loading = false; });
+          }
+        },
+        child: _loading
+          ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: AdminTheme.cyan))
+          : const Text('IMPORTAR', style: TextStyle(color: Colors.purple, fontWeight: FontWeight.bold))),
+    ],
+  );
 }
