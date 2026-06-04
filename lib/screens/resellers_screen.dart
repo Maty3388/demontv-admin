@@ -32,7 +32,7 @@ class _State extends State<ResellersScreen> {
     backgroundColor: AdminTheme.bg,
     appBar: AppBar(
       backgroundColor: AdminTheme.surface,
-      title: Text('Resellers (\${_resellers.length})', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+      title: Text('Resellers (${_resellers.length})', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       actions: [
         IconButton(icon: const Icon(Icons.add, color: AdminTheme.cyan), onPressed: () async {
           await showDialog(context: context, builder: (_) => _CreateResellerDialog(onCreated: _load));
@@ -70,7 +70,7 @@ class _State extends State<ResellersScreen> {
                       const SizedBox(width: 12),
                       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         Text(r['email'] ?? '', style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
-                        Text('ID: \${r['userId'] ?? ''}', style: const TextStyle(color: AdminTheme.textSecondary, fontSize: 11)),
+                        Text('ID: ${r['userId'] ?? ''}', style: const TextStyle(color: AdminTheme.textSecondary, fontSize: 11)),
                       ])),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -79,11 +79,11 @@ class _State extends State<ResellersScreen> {
                     ]),
                     const SizedBox(height: 10),
                     Row(children: [
-                      _InfoChip(Icons.account_balance_wallet, 'Balance: \${r['balance'] ?? 0}', AdminTheme.gold),
+                      _InfoChip(Icons.account_balance_wallet, 'Balance: ${r['balance'] ?? 0}', AdminTheme.gold),
                       const SizedBox(width: 8),
-                      _InfoChip(Icons.stars, 'Extras: \${r['extras'] ?? 0}', Colors.purple),
+                      _InfoChip(Icons.stars, 'Extras: ${r['extras'] ?? 0}', Colors.purple),
                       const SizedBox(width: 8),
-                      _InfoChip(Icons.casino, 'Giros: \${r['spins'] ?? 0}', Colors.green),
+                      _InfoChip(Icons.casino, 'Giros: ${r['spins'] ?? 0}', Colors.green),
                     ]),
                     const SizedBox(height: 10),
                     Row(mainAxisAlignment: MainAxisAlignment.end, children: [
@@ -96,7 +96,7 @@ class _State extends State<ResellersScreen> {
                         onPressed: () => showDialog(context: context, builder: (ctx) => AlertDialog(
                           backgroundColor: AdminTheme.surface,
                           title: const Text('Eliminar reseller', style: TextStyle(color: Colors.white)),
-                          content: Text('¿Eliminar \${r['email']}?', style: const TextStyle(color: AdminTheme.textSecondary)),
+                          content: Text('¿Eliminar ${r['email']}?', style: const TextStyle(color: AdminTheme.textSecondary)),
                           actions: [
                             TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar', style: TextStyle(color: AdminTheme.textSecondary))),
                             TextButton(onPressed: () async {
@@ -197,7 +197,7 @@ class _RechargeState extends State<_RechargeDialog> {
       const SizedBox(height: 16),
       Row(mainAxisAlignment: MainAxisAlignment.center, children: [
         IconButton(onPressed: () { if (_amount > 1) setState(() => _amount--); }, icon: const Icon(Icons.remove_circle_outline, color: AdminTheme.cyan)),
-        Text('\$_amount', style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
+        Text('$_amount', style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
         IconButton(onPressed: () => setState(() => _amount++), icon: const Icon(Icons.add_circle_outline, color: AdminTheme.cyan)),
       ]),
     ]),
