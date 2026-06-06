@@ -107,7 +107,7 @@ class _CS extends State<ChannelsScreen> {
     for (final id in _selected.toList()) {
       final ch = _ch.firstWhere((c) => _getId(c) == id, orElse: () => {});
       if (ch.isEmpty) continue;
-      final r = await AdminApi.updateChannel(id, {'category': newCat, 'name': ch['name'], 'logo': ch['logo'] ?? '', 'stream_url': ch['stream_url'] ?? ''});
+      final r = await AdminApi.updateChannel(id, ch['name']?.toString() ?? '', newCat, ch['logo']?.toString() ?? '', ch['stream_url']?.toString() ?? '');
       if (r['success'] == true) ok++;
     }
     if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$ok canales movidos a $newCat'), backgroundColor: AdminTheme.cyan));
@@ -270,7 +270,7 @@ class _AddState extends State<_AddDialog> {
       TextButton(onPressed: _loading ? null : () async {
         if (_name.text.isEmpty) { setState(() => _error = 'Nombre requerido'); return; }
         setState(() { _loading = true; _error = null; });
-        final r = await AdminApi.addChannel({'name': _name.text.trim(), 'category': _cat.text.trim().isEmpty ? 'General' : _cat.text.trim(), 'logo': _logo.text.trim(), 'stream_url': _url.text.trim()});
+        final r = await AdminApi.addChannel(_name.text.trim(), _cat.text.trim().isEmpty ? 'General' : _cat.text.trim(), _logo.text.trim(), _url.text.trim());
         setState(() => _loading = false);
         if (r['success'] == true) { widget.onAdded(); Navigator.pop(context); }
         else setState(() => _error = r['error'] ?? 'Error');
@@ -307,7 +307,7 @@ class _EditState extends State<_EditDialog> {
       TextButton(onPressed: _loading ? null : () async {
         setState(() { _loading = true; _error = null; });
         final id = (widget.channel['_id'] ?? widget.channel['id'] ?? '').toString();
-        final r = await AdminApi.updateChannel(id, {'name': _name.text.trim(), 'category': _cat.text.trim(), 'logo': _logo.text.trim(), 'stream_url': _url.text.trim()});
+        final r = await AdminApi.updateChannel(id, _name.text.trim(), _cat.text.trim(), _logo.text.trim(), _url.text.trim());
         setState(() => _loading = false);
         if (r['success'] == true) { widget.onEdited(); Navigator.pop(context); }
         else setState(() => _error = r['error'] ?? 'Error al actualizar');
