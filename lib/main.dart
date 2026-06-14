@@ -29,7 +29,7 @@ class DemonTvAdminApp extends StatelessWidget {
   const DemonTvAdminApp({super.key});
   @override
   Widget build(BuildContext context) => MaterialApp(
-    title: 'DemonTv Plus Admin',
+    title: 'FluxTv Panel',
     debugShowCheckedModeBanner: false,
     theme: AdminTheme.dark,
     initialRoute: AdminApi.token != null ? '/dashboard' : '/login',

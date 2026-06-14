@@ -31,7 +31,7 @@ class _State extends State<AdminLoginScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     backgroundColor: AdminTheme.bg,
-    appBar: AppBar(title: const Text('DemonTv Plus')),
+    appBar: AppBar(title: const Text('FluxTv Panel')),
     body: SafeArea(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 28),
@@ -49,7 +49,7 @@ class _State extends State<AdminLoginScreen> {
             const SizedBox(width: 18),
             const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text('Bienvenido a', style: TextStyle(color: AdminTheme.textSecondary, fontSize: 16)),
-              Text('DemonTv Plus', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+              Text('FluxTv Panel', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
             ]),
           ]),
           const SizedBox(height: 56),

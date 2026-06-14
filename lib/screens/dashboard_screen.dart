@@ -62,7 +62,7 @@ class _State extends State<DashboardScreen> {
       const SizedBox(width:12),
       const Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
         Text('Bienvenido al Panel',style:TextStyle(color:AdminTheme.textSecondary,fontSize:13)),
-        Text('DemonTv Plus',style:TextStyle(color:Colors.white,fontSize:17,fontWeight:FontWeight.bold)),
+        Text('FluxTv Panel',style:TextStyle(color:Colors.white,fontSize:17,fontWeight:FontWeight.bold)),
       ]),
       const Spacer(),
       GestureDetector(
