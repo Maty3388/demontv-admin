@@ -25,6 +25,7 @@ jobs:
           rm -rf tmp_app
           sed -i 's|<manifest xmlns:android="http://schemas.android.com/apk/res/android">|<manifest xmlns:android="http://schemas.android.com/apk/res/android"><uses-permission android:name="android.permission.INTERNET"/>|' android/app/src/main/AndroidManifest.xml
           sed -i 's/signingConfig = signingConfigs.debug/signingConfig = signingConfigs.release/' android/app/build.gradle
+          sed -i 's/android:label="demontv_admin"/android:label="FluxTv Panel"/' android/app/src/main/AndroidManifest.xml
           sed -i '/buildTypes {/i\    signingConfigs { release { def p=new Properties(); p.load(new FileInputStream(rootProject.file("key.properties"))); storeFile file(p["storeFile"]); storePassword p["storePassword"]; keyAlias p["keyAlias"]; keyPassword p["keyPassword"] } }' android/app/build.gradle
       - name: Setup keystore
         run: |
