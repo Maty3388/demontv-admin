@@ -71,10 +71,10 @@ class AdminApi {
     return _get(url);
   }
   static Future<Map<String, dynamic>> verifyStream(String url) => _post('/admin/channels/verify', {'url': url});
-  static Future<Map<String, dynamic>> addChannel(String name, String cat, String logo, String url) =>
-      _post('/admin/channels', {'name': name, 'category': cat, 'logo': logo, 'stream_url': url});
+  static Future<Map<String, dynamic>> addChannel(String name, String cat, String logo, String url, [String drmKeys = '']) =>
+      _post('/admin/channels', {'name': name, 'category': cat, 'logo': logo, 'stream_url': url, 'drm_keys': drmKeys});
   static Future<Map<String, dynamic>> deleteChannel(String id) => _delete('/admin/channels/$id');
-  static Future<Map<String, dynamic>> updateChannel(String id, String name, String category, String logo, String streamUrl) => _put('/admin/channels/$id', {"name": name, "category": category, "logo": logo, "stream_url": streamUrl});
+  static Future<Map<String, dynamic>> updateChannel(String id, String name, String category, String logo, String streamUrl, [String drmKeys = '']) => _put('/admin/channels/$id', {"name": name, "category": category, "logo": logo, "stream_url": streamUrl, "drm_keys": drmKeys});
   static Future<Map<String, dynamic>> fetchM3u(String url) =>
       _post('/admin/fetch-m3u', {'url': url});
   static Future<Map<String, dynamic>> importM3uFromUrl(String url) =>

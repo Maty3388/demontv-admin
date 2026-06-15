@@ -107,7 +107,7 @@ class _CS extends State<ChannelsScreen> {
     for (final id in _selected.toList()) {
       final ch = _ch.firstWhere((c) => _getId(c) == id, orElse: () => {});
       if (ch.isEmpty) continue;
-      final r = await AdminApi.updateChannel(id, ch['name']?.toString() ?? '', newCat, ch['logo']?.toString() ?? '', ch['stream_url']?.toString() ?? '');
+      final r = await AdminApi.updateChannel(id, ch['name']?.toString() ?? '', newCat, ch['logo']?.toString() ?? '', ch['stream_url']?.toString() ?? '', ch['drm_keys']?.toString() ?? '');
       if (r['success'] == true) ok++;
     }
     if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$ok canales movidos a $newCat'), backgroundColor: AdminTheme.cyan));
@@ -254,7 +254,7 @@ class _AddDialog extends StatefulWidget {
   @override State<_AddDialog> createState() => _AddState();
 }
 class _AddState extends State<_AddDialog> {
-  final _name = TextEditingController(), _logo = TextEditingController(), _url = TextEditingController(), _cat = TextEditingController();
+  final _name = TextEditingController(), _logo = TextEditingController(), _url = TextEditingController(), _cat = TextEditingController(), _drmKeys = TextEditingController();
   bool _loading = false; String? _error;
 
   @override
@@ -262,7 +262,7 @@ class _AddState extends State<_AddDialog> {
     backgroundColor: AdminTheme.surface,
     title: const Text('Agregar Canal', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
     content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
-      _f(_name, 'Nombre *'), _f(_cat, 'Categoría'), _f(_logo, 'URL Logo'), _f(_url, 'URL Stream'),
+      _f(_name, 'Nombre *'), _f(_cat, 'Categoría'), _f(_logo, 'URL Logo'), _f(_url, 'URL Stream'), _f(_drmKeys, 'Claves DRM (kid:key, opcional)'),
       if (_error != null) Text(_error!, style: const TextStyle(color: Color(0xFFCF6679), fontSize: 12)),
     ])),
     actions: [
@@ -270,7 +270,7 @@ class _AddState extends State<_AddDialog> {
       TextButton(onPressed: _loading ? null : () async {
         if (_name.text.isEmpty) { setState(() => _error = 'Nombre requerido'); return; }
         setState(() { _loading = true; _error = null; });
-        final r = await AdminApi.addChannel(_name.text.trim(), _cat.text.trim().isEmpty ? 'General' : _cat.text.trim(), _logo.text.trim(), _url.text.trim());
+        final r = await AdminApi.addChannel(_name.text.trim(), _cat.text.trim().isEmpty ? 'General' : _cat.text.trim(), _logo.text.trim(), _url.text.trim(), _drmKeys.text.trim());
         setState(() => _loading = false);
         if (r['success'] == true) { widget.onAdded(); Navigator.pop(context); }
         else setState(() => _error = r['error'] ?? 'Error');
@@ -292,6 +292,7 @@ class _EditState extends State<_EditDialog> {
   late final _logo = TextEditingController(text: widget.channel['logo']?.toString() ?? '');
   late final _url = TextEditingController(text: widget.channel['stream_url']?.toString() ?? '');
   late final _cat = TextEditingController(text: widget.channel['category']?.toString() ?? '');
+  late final _drmKeys = TextEditingController(text: widget.channel['drm_keys']?.toString() ?? '');
   bool _loading = false; String? _error;
 
   @override
@@ -299,7 +300,7 @@ class _EditState extends State<_EditDialog> {
     backgroundColor: AdminTheme.surface,
     title: const Text('Editar Canal', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
     content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
-      _f(_name, 'Nombre'), _f(_cat, 'Categoría'), _f(_logo, 'URL Logo'), _f(_url, 'URL Stream'),
+      _f(_name, 'Nombre'), _f(_cat, 'Categoría'), _f(_logo, 'URL Logo'), _f(_url, 'URL Stream'), _f(_drmKeys, 'Claves DRM (kid:key, opcional)'),
       if (_error != null) Text(_error!, style: const TextStyle(color: Color(0xFFCF6679), fontSize: 12)),
     ])),
     actions: [
@@ -307,7 +308,7 @@ class _EditState extends State<_EditDialog> {
       TextButton(onPressed: _loading ? null : () async {
         setState(() { _loading = true; _error = null; });
         final id = (widget.channel['_id'] ?? widget.channel['id'] ?? '').toString();
-        final r = await AdminApi.updateChannel(id, _name.text.trim(), _cat.text.trim(), _logo.text.trim(), _url.text.trim());
+        final r = await AdminApi.updateChannel(id, _name.text.trim(), _cat.text.trim(), _logo.text.trim(), _url.text.trim(), _drmKeys.text.trim());
         setState(() => _loading = false);
         if (r['success'] == true) { widget.onEdited(); Navigator.pop(context); }
         else setState(() => _error = r['error'] ?? 'Error al actualizar');
