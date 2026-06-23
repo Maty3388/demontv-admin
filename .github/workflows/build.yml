@@ -33,17 +33,7 @@ jobs:
           printf "storePassword=${{ secrets.KEYSTORE_PASSWORD }}\nkeyPassword=${{ secrets.KEY_PASSWORD }}\nkeyAlias=${{ secrets.KEY_ALIAS }}\nstoreFile=demontv.keystore\n" > android/key.properties
       - name: Fix Kotlin stdlib duplicates
         run: |
-          cat >> android/build.gradle << 'GRADLE'
-allprojects {
-    configurations.all {
-        resolutionStrategy {
-            force 'org.jetbrains.kotlin:kotlin-stdlib:1.8.10'
-            force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.10'
-            force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.10'
-        }
-    }
-}
-GRADLE
+          printf 'allprojects {\n  configurations.all {\n    resolutionStrategy {\n      force "org.jetbrains.kotlin:kotlin-stdlib:1.8.10"\n      force "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.10"\n      force "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.10"\n    }\n  }\n}\n' >> android/build.gradle
       - run: flutter pub get
       - run: flutter build apk --release --no-tree-shake-icons
       - name: Get version
