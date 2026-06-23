@@ -256,7 +256,7 @@ class _CreateResellerState extends State<_CreateResellerDialog> {
             else setState(() => _error = r['error'] ?? 'Error');
           },
           style: ElevatedButton.styleFrom(backgroundColor: AdminTheme.cyan, foregroundColor: Colors.black, padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-          child: _loading ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black)) : const Text('GENERAR', fontWeight: FontWeight.bold),
+          child: _loading ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black)) : const Text('GENERAR', style: TextStyle(fontWeight: FontWeight.bold)),
         )),
       ]),
     ])),
@@ -373,7 +373,7 @@ class _RankDialogState extends State<_RankDialog> {
             Navigator.pop(context);
           },
           style: ElevatedButton.styleFrom(backgroundColor: AdminTheme.gold, foregroundColor: Colors.black, padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-          child: _loading ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black)) : const Text('GUARDAR', fontWeight: FontWeight.bold),
+          child: _loading ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black)) : const Text('GUARDAR', style: TextStyle(fontWeight: FontWeight.bold)),
         )),
       ]),
     ])),
