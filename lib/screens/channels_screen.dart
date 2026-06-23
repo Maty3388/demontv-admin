@@ -107,7 +107,7 @@ class _CS extends State<ChannelsScreen> {
     for (final id in _selected.toList()) {
       final ch = _ch.firstWhere((c) => _getId(c) == id, orElse: () => {});
       if (ch.isEmpty) continue;
-      final r = await AdminApi.updateChannel(id, ch['name']?.toString() ?? '', newCat, ch['logo']?.toString() ?? '', ch['stream_url']?.toString() ?? '', ch['drm_keys']?.toString() ?? '');
+      final r = await AdminApi.updateChannel(id, ch['name']?.toString() ?? '', newCat, ch['logo']?.toString() ?? '', ch['stream_url']?.toString() ?? '', drmKeys: ch['drm_keys']?.toString() ?? '');
       if (r['success'] == true) ok++;
     }
     if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$ok canales movidos a $newCat'), backgroundColor: AdminTheme.cyan));
