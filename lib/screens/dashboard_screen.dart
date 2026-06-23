@@ -174,7 +174,7 @@ class _State extends State<DashboardScreen> {
     if(_clients.isEmpty) return const Center(child:Text('Sin clientes',style:TextStyle(color:AdminTheme.textSecondary)));
     return GridView.builder(
       padding: const EdgeInsets.fromLTRB(16,10,16,100),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount:2,crossAxisSpacing:10,mainAxisSpacing:10,childAspectRatio:1.0),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount:2,crossAxisSpacing:10,mainAxisSpacing:10,childAspectRatio:0.75),
       itemCount: _clients.length,
       itemBuilder: (ctx,i) => _ClientCard(client:_clients[i],onRefresh:_load),
     );
@@ -273,7 +273,7 @@ class _ClientCard extends StatelessWidget {
         Row(children:[
           Text(date,style:TextStyle(color:_dateColor,fontSize:12,fontWeight:FontWeight.w600)),
           const Spacer(),
-          Container(width:32,height:32,decoration:BoxDecoration(gradient:const LinearGradient(colors:[Color(0xFF1A3A6B),Color(0xFF2A5CB8)]),borderRadius:BorderRadius.circular(8)),child:const Icon(Icons.remove_red_eye_outlined,color:Colors.white70,size:16)),
+          Container(width:32,height:32,decoration:BoxDecoration(color:client['isWatching']==true?Colors.green.withOpacity(0.2):AdminTheme.surfaceAlt,borderRadius:BorderRadius.circular(8),border:Border.all(color:client['isWatching']==true?Colors.green:Colors.transparent,width:1)),child:Icon(Icons.remove_red_eye_outlined,color:client['isWatching']==true?Colors.green:AdminTheme.textHint,size:16)),
         ]),
         const SizedBox(height:6),
         Text(email,maxLines:1,overflow:TextOverflow.ellipsis,style:const TextStyle(color:Colors.white,fontSize:12)),
@@ -437,7 +437,6 @@ class _ProfileState extends State<_ProfileSheet> {
       SizedBox(width:double.infinity,child:ElevatedButton(
         style:ElevatedButton.styleFrom(backgroundColor:AdminTheme.red.withOpacity(0.15),padding:const EdgeInsets.symmetric(vertical:14),shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(14))),
         onPressed:() async {
-          Navigator.pop(ctx);
           final prefs = await SharedPreferences.getInstance();
           await prefs.remove('admin_token');
           AdminApi.token = null;
