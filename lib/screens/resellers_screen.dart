@@ -274,7 +274,6 @@ class _RechargeState extends State<_RechargeDialog> {
     content: Column(mainAxisSize: MainAxisSize.min, children: [
       Text(widget.email, style: const TextStyle(color: AdminTheme.textSecondary, fontSize: 13)),
       const SizedBox(height: 16),
-      Row(mainAxisAlignment: MainAxisAlignment.center, children: [
       Container(
         decoration: BoxDecoration(color: AdminTheme.surfaceAlt, borderRadius: BorderRadius.circular(12), border: Border.all(color: AdminTheme.gold.withOpacity(0.4))),
         child: TextField(
@@ -288,8 +287,6 @@ class _RechargeState extends State<_RechargeDialog> {
             border: InputBorder.none, contentPadding: EdgeInsets.symmetric(vertical: 14)),
         ),
       ),
-        Text('$_amount', style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
-      ]),
     ]),
     actions: [
       TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar', style: TextStyle(color: AdminTheme.textSecondary))),
