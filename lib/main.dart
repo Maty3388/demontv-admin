@@ -47,6 +47,7 @@ class MainNavScreen extends StatefulWidget {
 
 class _NavState extends State<MainNavScreen> {
   int _idx = 0;
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   // 0=Panel, 1=Monitor, 2=Canales, 3=Resellers, 4=Movies, 5=Series, 6=Logs, 7=Update, 8=Ruleta
   final _screens = const [
@@ -68,6 +69,7 @@ class _NavState extends State<MainNavScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
+    key: _scaffoldKey,
     backgroundColor: AdminTheme.bg,
     drawer: _buildDrawer(context),
     body: IndexedStack(index: _idx, children: _screens),
@@ -87,7 +89,7 @@ class _NavState extends State<MainNavScreen> {
         _NavBtn(icon: Icons.monitor_outlined, activeIcon: Icons.monitor, label: 'Monitor', index: 1, selected: _idx, onTap: (i) => setState(() => _idx = i)),
         _NavBtn(icon: Icons.live_tv_outlined, activeIcon: Icons.live_tv, label: 'Canales', index: 2, selected: _idx, onTap: (i) => setState(() => _idx = i)),
         _NavBtn(icon: Icons.store_outlined, activeIcon: Icons.store, label: 'Resellers', index: 3, selected: _idx, onTap: (i) => setState(() => _idx = i)),
-        _NavBtn(icon: Icons.menu, activeIcon: Icons.menu_open, label: 'Más', index: -1, selected: _idx, onTap: (_) => Scaffold.of(context).openDrawer()),
+        _NavBtn(icon: Icons.menu, activeIcon: Icons.menu_open, label: 'Más', index: -1, selected: _idx, onTap: (_) => _scaffoldKey.currentState?.openDrawer()),
       ]),
     )),
   );
