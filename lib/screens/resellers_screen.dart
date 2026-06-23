@@ -93,6 +93,11 @@ class _State extends State<ResellersScreen> {
                         label: const Text('Recargar'),
                         style: TextButton.styleFrom(foregroundColor: AdminTheme.cyan)),
                       TextButton.icon(
+                        onPressed: () => showDialog(context: context, builder: (_) => _RankDialog(id: id, email: r['email'] ?? '', currentRank: r['rank'] ?? 'Bronce', onDone: _load)),
+                        icon: const Icon(Icons.military_tech_outlined, size: 16),
+                        label: const Text('Rango'),
+                        style: TextButton.styleFrom(foregroundColor: AdminTheme.gold)),
+                      TextButton.icon(
                         onPressed: () => showDialog(context: context, builder: (ctx) => AlertDialog(
                           backgroundColor: AdminTheme.surface,
                           title: const Text('Eliminar reseller', style: TextStyle(color: Colors.white)),
@@ -141,63 +146,120 @@ class _CreateResellerDialog extends StatefulWidget {
 
 class _CreateResellerState extends State<_CreateResellerDialog> {
   final _email = TextEditingController();
-  final _pass = TextEditingController();
-  final _balance = TextEditingController(text: '0');
+  final _pass  = TextEditingController();
   String _rank = 'Bronce';
+  double _balance = 0;
   bool _loading = false;
   String? _error;
 
-  static const _ranks = ['Bronce', 'Silver', 'Gold', 'Platinum'];
-  static const _rankLabels = {'Bronce': '🥉 Bronce', 'Silver': '🥈 Silver', 'Gold': '🥇 Gold', 'Platinum': '💎 Platinum'};
+  static const _ranks = ['Bronce', 'Plata', 'Oro', 'Diamante'];
+  static const _rankIcons = {'Bronce': '🥉', 'Plata': '🥈', 'Oro': '🥇', 'Diamante': '💎'};
+  static const _rankColors = {'Bronce': Color(0xFFC9A84C), 'Plata': Color(0xFFB0BEC5), 'Oro': Color(0xFFFFD700), 'Diamante': Color(0xFF00E5FF)};
 
   @override
-  Widget build(BuildContext context) => AlertDialog(
-    backgroundColor: AdminTheme.surface,
-    title: const Text('Crear Reseller', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-    content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
-      TextField(controller: _email, keyboardType: TextInputType.emailAddress,
-        style: const TextStyle(color: Colors.white),
-        decoration: const InputDecoration(hintText: 'Correo', prefixIcon: Icon(Icons.email_outlined, size: 18))),
-      const SizedBox(height: 12),
-      TextField(controller: _pass, obscureText: true,
-        style: const TextStyle(color: Colors.white),
-        decoration: const InputDecoration(hintText: 'Contraseña', prefixIcon: Icon(Icons.lock_outline, size: 18))),
-      const SizedBox(height: 12),
-      TextField(controller: _balance, keyboardType: TextInputType.number,
-        style: const TextStyle(color: Colors.white),
-        decoration: const InputDecoration(hintText: 'Balance inicial', prefixIcon: Icon(Icons.monetization_on_outlined, size: 18))),
-      const SizedBox(height: 12),
+  Widget build(BuildContext context) => Dialog(
+    backgroundColor: const Color(0xFF0F0F1A),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+    child: SingleChildScrollView(padding: const EdgeInsets.all(24), child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Row(children: [
+        const Text('Crear Reseller', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+        const Spacer(),
+        GestureDetector(onTap: () => Navigator.pop(context), child: const Icon(Icons.close, color: Colors.white54)),
+      ]),
+      const SizedBox(height: 20),
+      // Email
       Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-        decoration: BoxDecoration(color: AdminTheme.surfaceAlt, borderRadius: BorderRadius.circular(8)),
-        child: DropdownButton<String>(
-          value: _rank,
-          isExpanded: true,
-          dropdownColor: AdminTheme.surfaceAlt,
-          underline: const SizedBox(),
-          icon: const Icon(Icons.arrow_drop_down, color: AdminTheme.textSecondary),
-          items: _ranks.map((r) => DropdownMenuItem(value: r, child: Text(_rankLabels[r]!, style: const TextStyle(color: Colors.white)))).toList(),
-          onChanged: (v) { if (v != null) setState(() => _rank = v); },
-        ),
+        decoration: BoxDecoration(color: const Color(0xFF16162A), borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFF2A2A4A))),
+        child: TextField(controller: _email, keyboardType: TextInputType.emailAddress, style: const TextStyle(color: Colors.white),
+          decoration: const InputDecoration(hintText: 'Correo electrónico', hintStyle: TextStyle(color: Colors.white38),
+            prefixIcon: Icon(Icons.email_outlined, color: Colors.white38, size: 20), border: InputBorder.none, contentPadding: EdgeInsets.symmetric(vertical: 14))),
       ),
+      const SizedBox(height: 12),
+      // Contraseña
+      Container(
+        decoration: BoxDecoration(color: const Color(0xFF16162A), borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFF2A2A4A))),
+        child: TextField(controller: _pass, obscureText: true, style: const TextStyle(color: Colors.white),
+          decoration: const InputDecoration(hintText: 'Contraseña', hintStyle: TextStyle(color: Colors.white38),
+            prefixIcon: Icon(Icons.lock_outline, color: Colors.white38, size: 20), border: InputBorder.none, contentPadding: EdgeInsets.symmetric(vertical: 14))),
+      ),
+      const SizedBox(height: 20),
+      // Rango
+      const Text('Selecciona una categoría', style: TextStyle(color: Colors.white60, fontSize: 13)),
+      const SizedBox(height: 10),
+      Row(children: _ranks.map((r) {
+        final sel = _rank == r;
+        final color = _rankColors[r]!;
+        return Expanded(child: GestureDetector(
+          onTap: () => setState(() => _rank = r),
+          child: Container(
+            margin: const EdgeInsets.only(right: 6),
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            decoration: BoxDecoration(
+              color: sel ? color.withOpacity(0.15) : const Color(0xFF16162A),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: sel ? color : const Color(0xFF2A2A4A), width: sel ? 1.5 : 1),
+            ),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              Text(_rankIcons[r]!, style: const TextStyle(fontSize: 18)),
+              const SizedBox(height: 2),
+              Text(r, style: TextStyle(color: sel ? color : Colors.white54, fontSize: 10, fontWeight: FontWeight.bold)),
+            ]),
+          ),
+        ));
+      }).toList()),
+      const SizedBox(height: 20),
+      // Balance slider
+      Row(children: [
+        const Text('Agregar balance', style: TextStyle(color: Colors.white60, fontSize: 13)),
+        const Spacer(),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          decoration: BoxDecoration(color: const Color(0xFF16162A), borderRadius: BorderRadius.circular(8), border: Border.all(color: AdminTheme.gold.withOpacity(0.4))),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            const Icon(Icons.monetization_on, color: AdminTheme.gold, size: 14),
+            const SizedBox(width: 4),
+            Text('${_balance.toInt()}', style: const TextStyle(color: AdminTheme.gold, fontWeight: FontWeight.bold, fontSize: 14)),
+          ]),
+        ),
+      ]),
+      const SizedBox(height: 8),
+      SliderTheme(
+        data: SliderTheme.of(context).copyWith(
+          activeTrackColor: AdminTheme.gold, inactiveTrackColor: const Color(0xFF2A2A4A),
+          thumbColor: AdminTheme.gold, overlayColor: AdminTheme.gold.withOpacity(0.1),
+          trackHeight: 3,
+        ),
+        child: Slider(value: _balance, min: 0, max: 100, divisions: 20, onChanged: (v) => setState(() => _balance = v)),
+      ),
+      const SizedBox(height: 8),
+      const Row(children: [
+        Icon(Icons.info_outline, color: Colors.white30, size: 14),
+        SizedBox(width: 6),
+        Expanded(child: Text('Una vez creado no se puede revertir el rango sin acceso admin.', style: TextStyle(color: Colors.white30, fontSize: 11))),
+      ]),
       if (_error != null) ...[const SizedBox(height: 8), Text(_error!, style: const TextStyle(color: AdminTheme.red, fontSize: 12))],
+      const SizedBox(height: 20),
+      Row(children: [
+        Expanded(child: OutlinedButton(
+          onPressed: () => Navigator.pop(context),
+          style: OutlinedButton.styleFrom(foregroundColor: Colors.white54, side: const BorderSide(color: Color(0xFF2A2A4A)), padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+          child: const Text('CANCELAR'),
+        )),
+        const SizedBox(width: 12),
+        Expanded(child: ElevatedButton(
+          onPressed: _loading ? null : () async {
+            if (_email.text.isEmpty || _pass.text.isEmpty) { setState(() => _error = 'Completá los campos'); return; }
+            setState(() { _loading = true; _error = null; });
+            final r = await AdminApi.createReseller(_email.text.trim(), _pass.text.trim(), rank: _rank, balance: _balance.toInt());
+            setState(() => _loading = false);
+            if (r['success'] == true) { widget.onCreated(); Navigator.pop(context); }
+            else setState(() => _error = r['error'] ?? 'Error');
+          },
+          style: ElevatedButton.styleFrom(backgroundColor: AdminTheme.cyan, foregroundColor: Colors.black, padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+          child: _loading ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black)) : const Text('GENERAR', fontWeight: FontWeight.bold),
+        )),
+      ]),
     ])),
-    actions: [
-      TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar', style: TextStyle(color: AdminTheme.textSecondary))),
-      TextButton(
-        onPressed: _loading ? null : () async {
-          if (_email.text.isEmpty || _pass.text.isEmpty) { setState(() => _error = 'Completá los campos'); return; }
-          setState(() { _loading = true; _error = null; });
-          final bal = int.tryParse(_balance.text.trim()) ?? 0;
-          final r = await AdminApi.createReseller(_email.text.trim(), _pass.text.trim(), rank: _rank, balance: bal);
-          setState(() => _loading = false);
-          if (r['success'] == true) { widget.onCreated(); Navigator.pop(context); }
-          else setState(() => _error = r['error'] ?? 'Error');
-        },
-        child: _loading
-          ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: AdminTheme.cyan))
-          : const Text('CREAR', style: TextStyle(color: AdminTheme.cyan, fontWeight: FontWeight.bold))),
-    ],
   );
 }
 
@@ -239,5 +301,81 @@ class _RechargeState extends State<_RechargeDialog> {
           ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: AdminTheme.cyan))
           : const Text('RECARGAR', style: TextStyle(color: AdminTheme.cyan, fontWeight: FontWeight.bold))),
     ],
+  );
+}
+
+class _RankDialog extends StatefulWidget {
+  final String id, email, currentRank;
+  final VoidCallback onDone;
+  const _RankDialog({required this.id, required this.email, required this.currentRank, required this.onDone});
+  @override State<_RankDialog> createState() => _RankDialogState();
+}
+
+class _RankDialogState extends State<_RankDialog> {
+  late String _rank;
+  bool _loading = false;
+
+  static const _ranks = ['Bronce', 'Plata', 'Oro', 'Diamante'];
+  static const _rankIcons = {'Bronce': '🥉', 'Plata': '🥈', 'Oro': '🥇', 'Diamante': '💎'};
+  static const _rankColors = {'Bronce': Color(0xFFC9A84C), 'Plata': Color(0xFFB0BEC5), 'Oro': Color(0xFFFFD700), 'Diamante': Color(0xFF00E5FF)};
+
+  @override
+  void initState() { super.initState(); _rank = widget.currentRank; }
+
+  @override
+  Widget build(BuildContext context) => Dialog(
+    backgroundColor: const Color(0xFF0F0F1A),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+    child: Padding(padding: const EdgeInsets.all(24), child: Column(mainAxisSize: MainAxisSize.min, children: [
+      Row(children: [
+        const Text('Cambiar Rango', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+        const Spacer(),
+        GestureDetector(onTap: () => Navigator.pop(context), child: const Icon(Icons.close, color: Colors.white54)),
+      ]),
+      const SizedBox(height: 8),
+      Text(widget.email, style: const TextStyle(color: AdminTheme.textSecondary, fontSize: 12)),
+      const SizedBox(height: 20),
+      Row(children: _ranks.map((r) {
+        final sel = _rank == r;
+        final color = _rankColors[r]!;
+        return Expanded(child: GestureDetector(
+          onTap: () => setState(() => _rank = r),
+          child: Container(
+            margin: const EdgeInsets.only(right: 6),
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            decoration: BoxDecoration(
+              color: sel ? color.withOpacity(0.15) : const Color(0xFF16162A),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: sel ? color : const Color(0xFF2A2A4A), width: sel ? 1.5 : 1),
+            ),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              Text(_rankIcons[r]!, style: const TextStyle(fontSize: 18)),
+              const SizedBox(height: 2),
+              Text(r, style: TextStyle(color: sel ? color : Colors.white54, fontSize: 10, fontWeight: FontWeight.bold)),
+            ]),
+          ),
+        ));
+      }).toList()),
+      const SizedBox(height: 24),
+      Row(children: [
+        Expanded(child: OutlinedButton(
+          onPressed: () => Navigator.pop(context),
+          style: OutlinedButton.styleFrom(foregroundColor: Colors.white54, side: const BorderSide(color: Color(0xFF2A2A4A)), padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+          child: const Text('CANCELAR'),
+        )),
+        const SizedBox(width: 12),
+        Expanded(child: ElevatedButton(
+          onPressed: _loading ? null : () async {
+            setState(() => _loading = true);
+            await AdminApi.setResellerRank(widget.id, _rank);
+            setState(() => _loading = false);
+            widget.onDone();
+            Navigator.pop(context);
+          },
+          style: ElevatedButton.styleFrom(backgroundColor: AdminTheme.gold, foregroundColor: Colors.black, padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+          child: _loading ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black)) : const Text('GUARDAR', fontWeight: FontWeight.bold),
+        )),
+      ]),
+    ])),
   );
 }
