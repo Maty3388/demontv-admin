@@ -142,14 +142,19 @@ class _CreateResellerDialog extends StatefulWidget {
 class _CreateResellerState extends State<_CreateResellerDialog> {
   final _email = TextEditingController();
   final _pass = TextEditingController();
+  final _balance = TextEditingController(text: '0');
+  String _rank = 'Bronce';
   bool _loading = false;
   String? _error;
+
+  static const _ranks = ['Bronce', 'Silver', 'Gold', 'Platinum'];
+  static const _rankLabels = {'Bronce': '🥉 Bronce', 'Silver': '🥈 Silver', 'Gold': '🥇 Gold', 'Platinum': '💎 Platinum'};
 
   @override
   Widget build(BuildContext context) => AlertDialog(
     backgroundColor: AdminTheme.surface,
     title: const Text('Crear Reseller', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-    content: Column(mainAxisSize: MainAxisSize.min, children: [
+    content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
       TextField(controller: _email, keyboardType: TextInputType.emailAddress,
         style: const TextStyle(color: Colors.white),
         decoration: const InputDecoration(hintText: 'Correo', prefixIcon: Icon(Icons.email_outlined, size: 18))),
@@ -157,15 +162,34 @@ class _CreateResellerState extends State<_CreateResellerDialog> {
       TextField(controller: _pass, obscureText: true,
         style: const TextStyle(color: Colors.white),
         decoration: const InputDecoration(hintText: 'Contraseña', prefixIcon: Icon(Icons.lock_outline, size: 18))),
+      const SizedBox(height: 12),
+      TextField(controller: _balance, keyboardType: TextInputType.number,
+        style: const TextStyle(color: Colors.white),
+        decoration: const InputDecoration(hintText: 'Balance inicial', prefixIcon: Icon(Icons.monetization_on_outlined, size: 18))),
+      const SizedBox(height: 12),
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        decoration: BoxDecoration(color: AdminTheme.surfaceAlt, borderRadius: BorderRadius.circular(8)),
+        child: DropdownButton<String>(
+          value: _rank,
+          isExpanded: true,
+          dropdownColor: AdminTheme.surfaceAlt,
+          underline: const SizedBox(),
+          icon: const Icon(Icons.arrow_drop_down, color: AdminTheme.textSecondary),
+          items: _ranks.map((r) => DropdownMenuItem(value: r, child: Text(_rankLabels[r]!, style: const TextStyle(color: Colors.white)))).toList(),
+          onChanged: (v) { if (v != null) setState(() => _rank = v); },
+        ),
+      ),
       if (_error != null) ...[const SizedBox(height: 8), Text(_error!, style: const TextStyle(color: AdminTheme.red, fontSize: 12))],
-    ]),
+    ])),
     actions: [
       TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar', style: TextStyle(color: AdminTheme.textSecondary))),
       TextButton(
         onPressed: _loading ? null : () async {
           if (_email.text.isEmpty || _pass.text.isEmpty) { setState(() => _error = 'Completá los campos'); return; }
           setState(() { _loading = true; _error = null; });
-          final r = await AdminApi.createReseller(_email.text.trim(), _pass.text.trim());
+          final bal = int.tryParse(_balance.text.trim()) ?? 0;
+          final r = await AdminApi.createReseller(_email.text.trim(), _pass.text.trim(), rank: _rank, balance: bal);
           setState(() => _loading = false);
           if (r['success'] == true) { widget.onCreated(); Navigator.pop(context); }
           else setState(() => _error = r['error'] ?? 'Error');

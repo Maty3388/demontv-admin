@@ -109,8 +109,8 @@ class AdminApi {
   static Future<Map<String, dynamic>> getResellers() => _get('/admin/resellers');
   static Future<Map<String, dynamic>> notifyResellers(String title, String message) =>
       _post('/admin/notify/resellers', {'title': title, 'message': message});
-  static Future<Map<String, dynamic>> createReseller(String email, String pass) =>
-      _post('/admin/resellers', {'email': email, 'password': pass});
+  static Future<Map<String, dynamic>> createReseller(String email, String pass, {String rank = 'basic', int balance = 0}) =>
+      _post('/admin/resellers', {'email': email, 'password': pass, 'rank': rank, 'balance': balance});
   static Future<Map<String, dynamic>> rechargeReseller(String id, int amount) =>
       _post('/admin/resellers/$id/recharge', {'amount': amount});
   static Future<Map<String, dynamic>> deleteReseller(String id) => _delete('/admin/resellers/$id');
