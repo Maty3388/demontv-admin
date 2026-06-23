@@ -70,7 +70,7 @@ class _State extends State<ResellersScreen> {
                       const SizedBox(width: 12),
                       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         Text(r['email'] ?? '', style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
-                        Text('ID: ${r['userId'] ?? ''}', style: const TextStyle(color: AdminTheme.textSecondary, fontSize: 11)),
+                        Text('ID: ${((r["_id"] ?? r["id"] ?? "") as String).length > 8 ? ((r["_id"] ?? r["id"] ?? "") as String).substring(0,8)+"..." : (r["_id"] ?? r["id"] ?? "")}', style: const TextStyle(color: AdminTheme.textSecondary, fontSize: 11)),
                       ])),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -148,7 +148,7 @@ class _CreateResellerState extends State<_CreateResellerDialog> {
   final _email = TextEditingController();
   final _pass  = TextEditingController();
   String _rank = 'Bronce';
-  double _balance = 0;
+  final _balanceCtrl = TextEditingController(text: '0');
   bool _loading = false;
   String? _error;
 
@@ -208,28 +208,21 @@ class _CreateResellerState extends State<_CreateResellerDialog> {
         ));
       }).toList()),
       const SizedBox(height: 20),
-      // Balance slider
-      Row(children: [
-        const Text('Agregar balance', style: TextStyle(color: Colors.white60, fontSize: 13)),
-        const Spacer(),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          decoration: BoxDecoration(color: const Color(0xFF16162A), borderRadius: BorderRadius.circular(8), border: Border.all(color: AdminTheme.gold.withOpacity(0.4))),
-          child: Row(mainAxisSize: MainAxisSize.min, children: [
-            const Icon(Icons.monetization_on, color: AdminTheme.gold, size: 14),
-            const SizedBox(width: 4),
-            Text('${_balance.toInt()}', style: const TextStyle(color: AdminTheme.gold, fontWeight: FontWeight.bold, fontSize: 14)),
-          ]),
-        ),
-      ]),
+      // Balance field
+      const Text('Agregar balance', style: TextStyle(color: Colors.white60, fontSize: 13)),
       const SizedBox(height: 8),
-      SliderTheme(
-        data: SliderTheme.of(context).copyWith(
-          activeTrackColor: AdminTheme.gold, inactiveTrackColor: const Color(0xFF2A2A4A),
-          thumbColor: AdminTheme.gold, overlayColor: AdminTheme.gold.withOpacity(0.1),
-          trackHeight: 3,
+      Container(
+        decoration: BoxDecoration(color: const Color(0xFF16162A), borderRadius: BorderRadius.circular(12), border: Border.all(color: AdminTheme.gold.withOpacity(0.4))),
+        child: TextField(
+          controller: _balanceCtrl,
+          keyboardType: TextInputType.number,
+          style: const TextStyle(color: AdminTheme.gold, fontWeight: FontWeight.bold),
+          decoration: const InputDecoration(
+            hintText: '0', hintStyle: TextStyle(color: Colors.white30),
+            prefixIcon: Icon(Icons.monetization_on_outlined, color: AdminTheme.gold, size: 20),
+            border: InputBorder.none, contentPadding: EdgeInsets.symmetric(vertical: 14)),
         ),
-        child: Slider(value: _balance, min: 0, max: 100, divisions: 20, onChanged: (v) => setState(() => _balance = v)),
+      ),
       ),
       const SizedBox(height: 8),
       const Row(children: [
@@ -250,7 +243,7 @@ class _CreateResellerState extends State<_CreateResellerDialog> {
           onPressed: _loading ? null : () async {
             if (_email.text.isEmpty || _pass.text.isEmpty) { setState(() => _error = 'Completá los campos'); return; }
             setState(() { _loading = true; _error = null; });
-            final r = await AdminApi.createReseller(_email.text.trim(), _pass.text.trim(), rank: _rank, balance: _balance.toInt());
+            final r = await AdminApi.createReseller(_email.text.trim(), _pass.text.trim(), rank: _rank, balance: int.tryParse(_balanceCtrl.text.trim()) ?? 0);
             setState(() => _loading = false);
             if (r['success'] == true) { widget.onCreated(); Navigator.pop(context); }
             else setState(() => _error = r['error'] ?? 'Error');
@@ -271,7 +264,7 @@ class _RechargeDialog extends StatefulWidget {
 }
 
 class _RechargeState extends State<_RechargeDialog> {
-  int _amount = 10;
+  final _amountCtrl = TextEditingController(text: '10');
   bool _loading = false;
 
   @override
@@ -282,9 +275,20 @@ class _RechargeState extends State<_RechargeDialog> {
       Text(widget.email, style: const TextStyle(color: AdminTheme.textSecondary, fontSize: 13)),
       const SizedBox(height: 16),
       Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-        IconButton(onPressed: () { if (_amount > 1) setState(() => _amount--); }, icon: const Icon(Icons.remove_circle_outline, color: AdminTheme.cyan)),
+      Container(
+        decoration: BoxDecoration(color: AdminTheme.surfaceAlt, borderRadius: BorderRadius.circular(12), border: Border.all(color: AdminTheme.gold.withOpacity(0.4))),
+        child: TextField(
+          controller: _amountCtrl,
+          keyboardType: TextInputType.number,
+          textAlign: TextAlign.center,
+          style: const TextStyle(color: AdminTheme.gold, fontSize: 28, fontWeight: FontWeight.bold),
+          decoration: const InputDecoration(
+            hintText: '0', hintStyle: TextStyle(color: Colors.white30),
+            prefixIcon: Icon(Icons.monetization_on_outlined, color: AdminTheme.gold, size: 20),
+            border: InputBorder.none, contentPadding: EdgeInsets.symmetric(vertical: 14)),
+        ),
+      ),
         Text('$_amount', style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
-        IconButton(onPressed: () => setState(() => _amount++), icon: const Icon(Icons.add_circle_outline, color: AdminTheme.cyan)),
       ]),
     ]),
     actions: [
@@ -292,7 +296,7 @@ class _RechargeState extends State<_RechargeDialog> {
       TextButton(
         onPressed: _loading ? null : () async {
           setState(() => _loading = true);
-          await AdminApi.rechargeReseller(widget.id, _amount);
+          await AdminApi.rechargeReseller(widget.id, int.tryParse(_amountCtrl.text.trim()) ?? 0);
           setState(() => _loading = false);
           widget.onDone();
           Navigator.pop(context);
