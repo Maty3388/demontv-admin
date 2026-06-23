@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api.dart';
+import 'profiles_screen.dart';
 import '../theme/theme.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -283,6 +284,7 @@ class _ClientCard extends StatelessWidget {
           Container(width:1,height:16,color:AdminTheme.border),
           const SizedBox(width:8),
           GestureDetector(onTap:()=>showDialog(context:ctx,builder:(_)=>_ExtendDialog(client:client,onDone:onRefresh)),child:const Icon(Icons.calendar_month_outlined,color:AdminTheme.textSecondary,size:20)),
+          GestureDetector(onTap:()=>showDialog(context:ctx,builder:(_)=>ProfilesDialog(client:client,onDone:onRefresh)),child:const Icon(Icons.people_outline,color:AdminTheme.cyan,size:20)),
           const SizedBox(width:8),
           Container(width:1,height:16,color:AdminTheme.border),
           const SizedBox(width:8),

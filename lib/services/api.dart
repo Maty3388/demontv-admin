@@ -100,6 +100,12 @@ class AdminApi {
   static Future<Map<String, dynamic>> updateAppVersion({required String version, required String apkUrl, required String changelog, required bool forceUpdate}) =>
       _put('/admin/app/version', {'version': version, 'apkUrl': apkUrl, 'changelog': changelog, 'forceUpdate': forceUpdate});
 
+  static Future<Map<String, dynamic>> getClientProfiles(String id) => _get('/admin/clients/$id/profiles');
+  static Future<Map<String, dynamic>> updateClientProfile(String clientId, int profileId, {String? name, String? avatar}) =>
+      _put('/admin/clients/$clientId/profiles/$profileId', {if (name != null) 'name': name, if (avatar != null) 'avatar': avatar});
+  static Future<Map<String, dynamic>> unlinkProfileDevice(String clientId, int profileId) =>
+      _delete('/admin/clients/$clientId/profiles/$profileId/device');
+
   static Future<Map<String, dynamic>> getResellers() => _get('/admin/resellers');
   static Future<Map<String, dynamic>> notifyResellers(String title, String message) =>
       _post('/admin/notify/resellers', {'title': title, 'message': message});
