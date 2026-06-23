@@ -311,35 +311,74 @@ class _CreateDialog extends StatefulWidget {
 }
 class _CreateState extends State<_CreateDialog> {
   final _e=TextEditingController(),_p=TextEditingController();
-  int _months=1;bool _extras=false,_loading=false;String? _error;
+  int _months=1;bool _extras=false,_loading=false,_isDemo=false;String? _error;
+
   Future<void> _create() async {
     if(_e.text.isEmpty||_p.text.isEmpty){setState(()=>_error='Completá los campos');return;}
     setState(()=>_loading=true);
-    final r=await AdminApi.createClient(_e.text.trim(),_p.text.trim(),_months,_extras);
+    final r=await AdminApi.createClient(_e.text.trim(),_p.text.trim(),_months,_extras,isDemo:_isDemo);
     setState(()=>_loading=false);
     if(r['success']==true){widget.onCreated();Navigator.pop(context);}
     else setState(()=>_error=r['error']??'Error');
   }
+
   @override
   Widget build(BuildContext ctx)=>AlertDialog(
     backgroundColor:AdminTheme.surface,
     title:const Text('Crear cliente',style:TextStyle(color:Colors.white,fontWeight:FontWeight.bold)),
-    content:Column(mainAxisSize:MainAxisSize.min,children:[
+    content:SingleChildScrollView(child:Column(mainAxisSize:MainAxisSize.min,crossAxisAlignment:CrossAxisAlignment.start,children:[
+      // Demo toggle
+      GestureDetector(
+        onTap:()=>setState(()=>_isDemo=!_isDemo),
+        child:Container(
+          margin:const EdgeInsets.only(bottom:12),
+          padding:const EdgeInsets.symmetric(horizontal:12,vertical:10),
+          decoration:BoxDecoration(
+            color:_isDemo?Colors.orange.withOpacity(0.15):AdminTheme.surfaceAlt,
+            borderRadius:BorderRadius.circular(10),
+            border:Border.all(color:_isDemo?Colors.orange:AdminTheme.border)),
+          child:Row(children:[
+            Icon(Icons.access_time,color:_isDemo?Colors.orange:AdminTheme.textSecondary,size:18),
+            const SizedBox(width:8),
+            Text('Demo (1 hora)',style:TextStyle(color:_isDemo?Colors.orange:AdminTheme.textSecondary,fontWeight:FontWeight.w600)),
+            const Spacer(),
+            Switch(value:_isDemo,onChanged:(v)=>setState(()=>_isDemo=v),activeColor:Colors.orange),
+          ]),
+        ),
+      ),
       TextField(controller:_e,keyboardType:TextInputType.emailAddress,style:const TextStyle(color:Colors.white),decoration:const InputDecoration(hintText:'Correo')),
       const SizedBox(height:12),
       TextField(controller:_p,style:const TextStyle(color:Colors.white),decoration:const InputDecoration(hintText:'Contraseña')),
-      const SizedBox(height:16),
-      _radio('1 MES',1),_radio('2 MES',2),_radio('3 MES',3),
-      const SizedBox(height:12),
-      _toggle(),
+      if(!_isDemo)...[
+        const SizedBox(height:16),
+        const Text('Duración',style:TextStyle(color:AdminTheme.textSecondary,fontSize:12)),
+        const SizedBox(height:4),
+        Wrap(spacing:4,children:[
+          _chip('1M',1),_chip('2M',2),_chip('3M',3),_chip('6M',6),_chip('12M',12),
+        ]),
+        const SizedBox(height:12),
+        _toggle(),
+      ],
       if(_error!=null)...[const SizedBox(height:8),Text(_error!,style:const TextStyle(color:AdminTheme.red,fontSize:12))],
-    ]),
+    ])),
     actions:[
       TextButton(onPressed:()=>Navigator.pop(ctx),child:const Text('CANCELAR',style:TextStyle(color:AdminTheme.textSecondary))),
       TextButton(onPressed:_loading?null:_create,child:_loading?const SizedBox(width:16,height:16,child:CircularProgressIndicator(strokeWidth:2,color:AdminTheme.cyan)):const Text('CREAR',style:TextStyle(color:AdminTheme.cyan,fontWeight:FontWeight.bold))),
     ],
   );
-  Widget _radio(String l,int v)=>GestureDetector(onTap:()=>setState(()=>_months=v),child:Row(children:[Radio<int>(value:v,groupValue:_months,onChanged:(x)=>setState(()=>_months=x!),activeColor:AdminTheme.cyan),Text(l,style:const TextStyle(color:Colors.white))]));
+
+  Widget _chip(String l,int v)=>GestureDetector(
+    onTap:()=>setState(()=>_months=v),
+    child:Container(
+      padding:const EdgeInsets.symmetric(horizontal:12,vertical:6),
+      decoration:BoxDecoration(
+        color:_months==v?AdminTheme.cyan.withOpacity(0.2):AdminTheme.surfaceAlt,
+        borderRadius:BorderRadius.circular(8),
+        border:Border.all(color:_months==v?AdminTheme.cyan:AdminTheme.border)),
+      child:Text(l,style:TextStyle(color:_months==v?AdminTheme.cyan:Colors.white,fontWeight:FontWeight.bold,fontSize:13)),
+    ),
+  );
+
   Widget _toggle()=>GestureDetector(onTap:()=>setState(()=>_extras=!_extras),child:Container(padding:const EdgeInsets.symmetric(horizontal:12,vertical:8),decoration:BoxDecoration(border:Border.all(color:AdminTheme.cyan),borderRadius:BorderRadius.circular(10)),child:Row(mainAxisAlignment:MainAxisAlignment.spaceBetween,children:[Text('creditos',style:TextStyle(color:_extras?AdminTheme.textSecondary:AdminTheme.cyan,fontSize:13)),Switch(value:_extras,onChanged:(v)=>setState(()=>_extras=v),activeColor:AdminTheme.cyan),Text('extras',style:TextStyle(color:_extras?AdminTheme.cyan:AdminTheme.textSecondary,fontSize:13))])));
 }
 
