@@ -42,19 +42,39 @@ class _State extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     backgroundColor: AdminTheme.bg,
-    body: SafeArea(child: Column(children: [
-      _header(),
-      BalanceCard(balance: _stats?['balance'] ?? 0, extras: _stats?['extras'] ?? 0),
-      const SizedBox(height: 12),
-      _statsChart(),
-      const SizedBox(height: 12),
-      _clientsHeader(),
-      _toolbar(),
-      if (_filterOpen) _filterMenu(),
-      Expanded(child: _loading
-        ? const Center(child: CircularProgressIndicator(color: AdminTheme.cyan))
-        : _grid()),
-    ])),
+    body: SafeArea(child: _loading
+      ? const Center(child: CircularProgressIndicator(color: AdminTheme.cyan))
+      : RefreshIndicator(
+          color: AdminTheme.cyan,
+          onRefresh: _load,
+          child: CustomScrollView(slivers: [
+            SliverToBoxAdapter(child: Column(children: [
+              _header(),
+              BalanceCard(balance: _stats?['balance'] ?? 0, extras: _stats?['extras'] ?? 0),
+              const SizedBox(height: 12),
+              _statsChart(),
+              const SizedBox(height: 12),
+              _clientsHeader(),
+              _toolbar(),
+              if (_filterOpen) _filterMenu(),
+              const SizedBox(height: 8),
+            ])),
+            if (_clients.isEmpty)
+              const SliverFillRemaining(child: Center(child: Text('Sin clientes', style: TextStyle(color: AdminTheme.textSecondary))))
+            else
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+                sliver: SliverGrid(
+                  delegate: SliverChildBuilderDelegate(
+                    (ctx, i) => _ClientCard(client: _clients[i], onRefresh: _load),
+                    childCount: _clients.length,
+                  ),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2, crossAxisSpacing: 10, mainAxisSpacing: 10, childAspectRatio: 0.75),
+                ),
+              ),
+          ]),
+        )),
     floatingActionButton: _fab(),
     floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
   );

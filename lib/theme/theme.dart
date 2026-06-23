@@ -63,7 +63,7 @@ class BalanceCard extends StatelessWidget {
       Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(20)),
-        child: const Text('VENDEDOR', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13, letterSpacing: 1)),
+        child: const Text('ADMIN', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13, letterSpacing: 1)),
       ),
     ]),
   );
