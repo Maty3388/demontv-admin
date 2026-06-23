@@ -31,6 +31,10 @@ jobs:
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/demontv.keystore
           printf "storePassword=${{ secrets.KEYSTORE_PASSWORD }}\nkeyPassword=${{ secrets.KEY_PASSWORD }}\nkeyAlias=${{ secrets.KEY_ALIAS }}\nstoreFile=demontv.keystore\n" > android/key.properties
+      - name: Fix Kotlin stdlib duplicates
+        run: |
+          echo "rootProject.ext.kotlin_version = '1.8.10'" >> android/build.gradle
+          sed -i "/dependencies {/a\        constraints { implementation('org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.10') { because 'resolve duplicate' } implementation('org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.10') { because 'resolve duplicate' } }" android/app/build.gradle
       - run: flutter pub get
       - run: flutter build apk --release --no-tree-shake-icons
       - name: Get version
