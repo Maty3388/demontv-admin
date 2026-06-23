@@ -222,8 +222,6 @@ class _CreateResellerState extends State<_CreateResellerDialog> {
             prefixIcon: Icon(Icons.monetization_on_outlined, color: AdminTheme.gold, size: 20),
             border: InputBorder.none, contentPadding: EdgeInsets.symmetric(vertical: 14)),
         ),
-      ),
-      ),
       const SizedBox(height: 8),
       const Row(children: [
         Icon(Icons.info_outline, color: Colors.white30, size: 14),
