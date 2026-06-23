@@ -1,8 +1,11 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/services.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api.dart';
 import '../theme/theme.dart';
 
@@ -198,11 +201,10 @@ class _State extends State<DashboardScreen> {
         rows.add('\$email,\$exp,\$blocked,\$days');
       }
       final csv = rows.join('\n');
-      final dir = Directory.systemTemp;
+      final dir = await getTemporaryDirectory();
       final file = File('\${dir.path}/clientes_demontv.csv');
       await file.writeAsString(csv);
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('CSV exportado: \${clients.length} clientes'), backgroundColor: Colors.green));
+      await Share.shareXFiles([XFile(file.path)], text: 'Clientes DemonTV (\${clients.length})');
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: \$e'), backgroundColor: AdminTheme.red));
@@ -430,6 +432,17 @@ class _ProfileState extends State<_ProfileSheet> {
       const SizedBox(height:8),
       const Center(child:Text('💡 Toca cualquier campo para copiar',style:TextStyle(color:AdminTheme.textSecondary,fontSize:12))),
       const SizedBox(height:20),
+      SizedBox(width:double.infinity,child:ElevatedButton(
+        style:ElevatedButton.styleFrom(backgroundColor:AdminTheme.red.withOpacity(0.15),padding:const EdgeInsets.symmetric(vertical:14),shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(14))),
+        onPressed:() async {
+          Navigator.pop(ctx);
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.remove('admin_token');
+          AdminApi.token = null;
+          if (ctx.mounted) Navigator.pushNamedAndRemoveUntil(ctx, '/login', (_) => false);
+        },
+        child:const Text('CERRAR SESIÓN',style:TextStyle(color:AdminTheme.red,fontWeight:FontWeight.bold,letterSpacing:1.5)))),
+      const SizedBox(height:10),
       SizedBox(width:double.infinity,child:ElevatedButton(style:ElevatedButton.styleFrom(backgroundColor:AdminTheme.surfaceAlt,padding:const EdgeInsets.symmetric(vertical:14),shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(14))),onPressed:()=>Navigator.pop(ctx),child:const Text('ACEPTAR',style:TextStyle(color:Colors.white,fontWeight:FontWeight.bold,letterSpacing:1.5)))),
     ]),
   );
