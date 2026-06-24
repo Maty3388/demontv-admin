@@ -252,7 +252,7 @@ class _CreateResellerState extends State<_CreateResellerDialog> {
             setState(() => _loading = false);
             if (r['success'] == true) {
               widget.onCreated();
-              await Clipboard.setData(ClipboardData(text: 'Email: \${_email.text.trim()}\nContraseña: \${_pass.text.trim()}\nRango: \$_rank\nBalance: \${int.tryParse(_balanceCtrl.text.trim()) ?? 0}'));
+              await Clipboard.setData(ClipboardData(text: 'Email: ' + _email.text.trim() + '\nContraseña: ' + _pass.text.trim() + '\nRango: ' + _rank + '\nBalance: ' + (_balanceCtrl.text.trim().isEmpty ? '0' : _balanceCtrl.text.trim())));
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✅ Credenciales copiadas al portapapeles'), backgroundColor: Colors.green));
             }
