@@ -106,6 +106,9 @@ class AdminApi {
   static Future<Map<String, dynamic>> unlinkProfileDevice(String clientId, int profileId) =>
       _delete('/admin/clients/$clientId/profiles/$profileId/device');
 
+  static Future<Map<String, dynamic>> editReseller(String id, {String? password, String? email}) =>
+      _put('/admin/resellers/$id', {if (password != null) 'password': password, if (email != null) 'email': email});
+
   static Future<Map<String, dynamic>> getResellers() => _get('/admin/resellers');
   static Future<Map<String, dynamic>> notifyResellers(String title, String message) =>
       _post('/admin/notify/resellers', {'title': title, 'message': message});

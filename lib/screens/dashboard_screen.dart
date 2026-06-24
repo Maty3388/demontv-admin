@@ -70,7 +70,7 @@ class _State extends State<DashboardScreen> {
                     childCount: _clients.length,
                   ),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2, crossAxisSpacing: 10, mainAxisSpacing: 10, childAspectRatio: 0.75),
+                    crossAxisCount: 2, crossAxisSpacing: 10, mainAxisSpacing: 10, childAspectRatio: 1.1),
                 ),
               ),
           ]),
@@ -338,7 +338,12 @@ class _CreateState extends State<_CreateDialog> {
     setState(()=>_loading=true);
     final r=await AdminApi.createClient(_e.text.trim(),_p.text.trim(),_months,_extras,isDemo:_isDemo);
     setState(()=>_loading=false);
-    if(r['success']==true){widget.onCreated();Navigator.pop(context);}
+    if(r['success']==true){
+      widget.onCreated();
+      await Clipboard.setData(ClipboardData(text: 'Email: \${_e.text.trim()}\nContraseña: \${_p.text.trim()}'));
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✅ Credenciales copiadas al portapapeles'), backgroundColor: Colors.green));
+    }
     else setState(()=>_error=r['error']??'Error');
   }
 

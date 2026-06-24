@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../services/api.dart';
 import '../theme/theme.dart';
 
@@ -92,6 +93,11 @@ class _State extends State<ResellersScreen> {
                         icon: const Icon(Icons.add_circle_outline, size: 16),
                         label: const Text('Recargar'),
                         style: TextButton.styleFrom(foregroundColor: AdminTheme.cyan)),
+                      TextButton.icon(
+                        onPressed: () => showDialog(context: context, builder: (_) => _EditResellerDialog(id: id, email: r['email'] ?? '', onDone: _load)),
+                        icon: const Icon(Icons.edit_outlined, size: 16),
+                        label: const Text('Editar'),
+                        style: TextButton.styleFrom(foregroundColor: Colors.purple)),
                       TextButton.icon(
                         onPressed: () => showDialog(context: context, builder: (_) => _RankDialog(id: id, email: r['email'] ?? '', currentRank: r['rank'] ?? 'Bronce', onDone: _load)),
                         icon: const Icon(Icons.military_tech_outlined, size: 16),
@@ -244,7 +250,12 @@ class _CreateResellerState extends State<_CreateResellerDialog> {
             setState(() { _loading = true; _error = null; });
             final r = await AdminApi.createReseller(_email.text.trim(), _pass.text.trim(), rank: _rank, balance: int.tryParse(_balanceCtrl.text.trim()) ?? 0);
             setState(() => _loading = false);
-            if (r['success'] == true) { widget.onCreated(); Navigator.pop(context); }
+            if (r['success'] == true) {
+              widget.onCreated();
+              await Clipboard.setData(ClipboardData(text: 'Email: \${_email.text.trim()}\nContraseña: \${_pass.text.trim()}\nRango: \$_rank\nBalance: \${int.tryParse(_balanceCtrl.text.trim()) ?? 0}'));
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✅ Credenciales copiadas al portapapeles'), backgroundColor: Colors.green));
+            }
             else setState(() => _error = r['error'] ?? 'Error');
           },
           style: ElevatedButton.styleFrom(backgroundColor: AdminTheme.cyan, foregroundColor: Colors.black, padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
@@ -377,5 +388,62 @@ class _RankDialogState extends State<_RankDialog> {
         )),
       ]),
     ])),
+  );
+}
+
+class _EditResellerDialog extends StatefulWidget {
+  final String id, email;
+  final VoidCallback onDone;
+  const _EditResellerDialog({required this.id, required this.email, required this.onDone});
+  @override State<_EditResellerDialog> createState() => _EditResellerState();
+}
+
+class _EditResellerState extends State<_EditResellerDialog> {
+  final _pass = TextEditingController();
+  bool _loading = false;
+  String? _error;
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    backgroundColor: AdminTheme.surface,
+    title: const Text('Editar Reseller', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+    content: Column(mainAxisSize: MainAxisSize.min, children: [
+      Text(widget.email, style: const TextStyle(color: AdminTheme.textSecondary, fontSize: 13)),
+      const SizedBox(height: 16),
+      Container(
+        decoration: BoxDecoration(color: AdminTheme.surfaceAlt, borderRadius: BorderRadius.circular(12), border: Border.all(color: AdminTheme.border)),
+        child: TextField(
+          controller: _pass,
+          obscureText: true,
+          style: const TextStyle(color: Colors.white),
+          decoration: const InputDecoration(
+            hintText: 'Nueva contraseña',
+            prefixIcon: Icon(Icons.lock_outline, color: AdminTheme.textSecondary, size: 20),
+            border: InputBorder.none, contentPadding: EdgeInsets.symmetric(vertical: 14)),
+        ),
+      ),
+      if (_error != null) ...[const SizedBox(height: 8), Text(_error!, style: const TextStyle(color: AdminTheme.red, fontSize: 12))],
+    ]),
+    actions: [
+      TextButton(onPressed: () => Navigator.pop(context), child: const Text('CANCELAR', style: TextStyle(color: AdminTheme.textSecondary))),
+      TextButton(
+        onPressed: _loading ? null : () async {
+          if (_pass.text.isEmpty) { setState(() => _error = 'Ingresá la nueva contraseña'); return; }
+          setState(() { _loading = true; _error = null; });
+          final r = await AdminApi.editReseller(widget.id, password: _pass.text.trim());
+          setState(() => _loading = false);
+          if (r['success'] == true) {
+            await Clipboard.setData(ClipboardData(text: 'Email: \${widget.email}\nContraseña: \${_pass.text.trim()}'));
+            widget.onDone();
+            Navigator.pop(context);
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✅ Contraseña actualizada y copiada'), backgroundColor: Colors.green));
+          } else {
+            setState(() => _error = r['error'] ?? 'Error');
+          }
+        },
+        child: _loading
+          ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: AdminTheme.cyan))
+          : const Text('GUARDAR', style: TextStyle(color: AdminTheme.cyan, fontWeight: FontWeight.bold))),
+    ],
   );
 }
