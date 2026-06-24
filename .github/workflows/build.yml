@@ -43,6 +43,21 @@ jobs:
           cp assets/icons/xxxhdpi.png android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
       - run: flutter pub get
       - run: flutter build apk --release --no-tree-shake-icons
+      - name: Build Flutter Web
+        run: flutter build web --release --base-href /panel/
+      - name: Deploy web to VPS
+        env:
+          VPS_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          if [ -n "$VPS_KEY" ]; then
+            mkdir -p ~/.ssh
+            echo "$VPS_KEY" > ~/.ssh/id_rsa
+            chmod 600 ~/.ssh/id_rsa
+            ssh-keyscan -H 149.104.92.205 >> ~/.ssh/known_hosts
+            rsync -az --delete build/web/ root@149.104.92.205:/var/www/html/panel/
+          else
+            echo "VPS_SSH_KEY no configurado, saltando deploy web"
+          fi
       - name: Get version
         id: ver
         run: echo "VERSION=$(grep '^version:' pubspec.yaml | cut -d' ' -f2 | cut -d'+' -f1)" >> $GITHUB_OUTPUT
