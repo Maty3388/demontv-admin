@@ -38,13 +38,9 @@ class _State extends State<AdminLoginScreen> {
         child: Column(children: [
           const SizedBox(height: 60),
           Row(children: [
-            Container(
-              width: 72, height: 72,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(colors: [Color(0xFF7B2FFF), Color(0xFFFF6B9D), Color(0xFFFFAA00)], begin: Alignment.topLeft, end: Alignment.bottomRight),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Icon(Icons.all_inclusive, color: Colors.white, size: 38),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Image.asset('assets/logo.png', width: 72, height: 72, fit: BoxFit.cover),
             ),
             const SizedBox(width: 18),
             const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
