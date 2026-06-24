@@ -13,6 +13,7 @@ import 'screens/channels_screen.dart';
 import 'screens/spin_screen.dart';
 import 'screens/version_screen.dart';
 import 'screens/resellers_screen.dart';
+import 'screens/chat_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -60,11 +61,12 @@ class _NavState extends State<MainNavScreen> {
     LogsScreen(),
     VersionScreen(),
     SpinScreen(),
+    const AdminChatScreen(),
   ];
 
   final _titles = const [
     'Panel', 'Monitor', 'Canales', 'Resellers',
-    'Películas', 'Series', 'Logs', 'Actualización', 'Ruleta',
+    'Películas', 'Series', 'Logs', 'Actualización', 'Ruleta', 'Chat',
   ];
 
   @override
@@ -120,6 +122,7 @@ class _NavState extends State<MainNavScreen> {
       _DrawerItem(icon: Icons.history_outlined, label: 'Logs', selected: _idx == 6, onTap: () { setState(() => _idx = 6); Navigator.pop(context); }),
       _DrawerItem(icon: Icons.system_update_outlined, label: 'Actualización App', selected: _idx == 7, onTap: () { setState(() => _idx = 7); Navigator.pop(context); }),
       _DrawerItem(icon: Icons.casino_outlined, label: 'Ruleta', selected: _idx == 8, onTap: () { setState(() => _idx = 8); Navigator.pop(context); }),
+      _DrawerItem(icon: Icons.chat_outlined, label: 'Chat', selected: _idx == 9, onTap: () { setState(() => _idx = 9); Navigator.pop(context); }),
       const Spacer(),
       const Divider(color: Color(0xFF2C2C2E)),
       // Cerrar sesión
