@@ -18,6 +18,21 @@ import 'screens/chat_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await AdminApi.loadToken();
+  // Validar token contra el servidor
+  if (AdminApi.token != null) {
+    try {
+      final r = await AdminApi.getProfile();
+      if (r['error'] != null) {
+        AdminApi.token = null;
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.remove('admin_token');
+      }
+    } catch (_) {
+      AdminApi.token = null;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('admin_token');
+    }
+  }
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
