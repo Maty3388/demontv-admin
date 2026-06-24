@@ -82,7 +82,7 @@ class _State extends State<DashboardScreen> {
   Widget _header() => Padding(
     padding: const EdgeInsets.fromLTRB(16,12,16,8),
     child: Row(children: [
-      Container(width:44,height:44,decoration:BoxDecoration(gradient:const LinearGradient(colors:[Color(0xFF7B2FFF),Color(0xFFFF6B9D),Color(0xFFFFAA00)],begin:Alignment.topLeft,end:Alignment.bottomRight),borderRadius:BorderRadius.circular(12)),child:const Icon(Icons.all_inclusive,color:Colors.white,size:24)),
+      ClipRRect(borderRadius: BorderRadius.circular(12), child: Image.network('https://raw.githubusercontent.com/Maty3388/demontv-admin/master/assets/logo.png', width: 44, height: 44, fit: BoxFit.cover)),
       const SizedBox(width:12),
       const Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
         Text('Bienvenido al Panel',style:TextStyle(color:AdminTheme.textSecondary,fontSize:13)),
