@@ -40,7 +40,7 @@ class _State extends State<AdminLoginScreen> {
           Row(children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(16),
-              child: Image.asset('assets/logo.png', width: 72, height: 72, fit: BoxFit.cover),
+              child: Image.network('https://raw.githubusercontent.com/Maty3388/demontv-admin/master/assets/logo.png', width: 72, height: 72, fit: BoxFit.cover),
             ),
             const SizedBox(width: 18),
             const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

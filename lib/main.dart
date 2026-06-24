@@ -121,8 +121,7 @@ class _NavState extends State<MainNavScreen> {
           gradient: LinearGradient(colors: [Color(0xFF7B2FFF), Color(0xFFFF9500)], begin: Alignment.topLeft, end: Alignment.bottomRight),
         ),
         child: Row(children: [
-          Container(width: 44, height: 44, decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(12)),
-            child: const Icon(Icons.all_inclusive, color: Colors.white, size: 26)),
+          ClipRRect(borderRadius: BorderRadius.circular(12), child: Image.network('https://raw.githubusercontent.com/Maty3388/demontv-admin/master/assets/logo.png', width: 44, height: 44, fit: BoxFit.cover)),
           const SizedBox(width: 12),
           const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text('FluxTv Panel', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
