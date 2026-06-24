@@ -44,7 +44,11 @@ jobs:
       - run: flutter pub get
       - run: flutter build apk --release --no-tree-shake-icons
       - name: Build Flutter Web
-        run: flutter build web --release --base-href /panel/
+        run: |
+          flutter create --org com.demontv --project-name demontv_admin tmp_web
+          cp -r tmp_web/web .
+          rm -rf tmp_web
+          flutter build web --release --base-href /panel/
       - name: Deploy web to VPS
         env:
           VPS_KEY: ${{ secrets.VPS_SSH_KEY }}
