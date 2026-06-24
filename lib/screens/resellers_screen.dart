@@ -87,7 +87,7 @@ class _State extends State<ResellersScreen> {
                       _InfoChip(Icons.casino, 'Giros: ${r['spins'] ?? 0}', Colors.green),
                     ]),
                     const SizedBox(height: 10),
-                    Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                    Wrap(spacing: 0, children: [
                       TextButton.icon(
                         onPressed: () => showDialog(context: context, builder: (_) => _RechargeDialog(id: id, email: r['email'] ?? '', onDone: _load)),
                         icon: const Icon(Icons.add_circle_outline, size: 16),

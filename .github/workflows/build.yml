@@ -34,6 +34,13 @@ jobs:
       - name: Fix Kotlin stdlib duplicates
         run: |
           printf 'allprojects {\n  configurations.all {\n    resolutionStrategy {\n      force "org.jetbrains.kotlin:kotlin-stdlib:1.8.10"\n      force "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.10"\n      force "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.10"\n    }\n  }\n}\n' >> android/build.gradle
+      - name: Copy launcher icons
+        run: |
+          cp assets/icons/mdpi.png android/app/src/main/res/mipmap-mdpi/ic_launcher.png
+          cp assets/icons/hdpi.png android/app/src/main/res/mipmap-hdpi/ic_launcher.png
+          cp assets/icons/xhdpi.png android/app/src/main/res/mipmap-xhdpi/ic_launcher.png
+          cp assets/icons/xxhdpi.png android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
+          cp assets/icons/xxxhdpi.png android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
       - run: flutter pub get
       - run: flutter build apk --release --no-tree-shake-icons
       - name: Get version
