@@ -4,6 +4,11 @@ import 'package:http/http.dart' as http;
 
 class AdminApi {
   static const base = 'http://149.104.92.205:25461';
+  static String get _base {
+    // En web usar URL relativa para evitar mixed content
+    if (const bool.fromEnvironment('dart.library.html')) return '';
+    return base;
+  }
   static String? token;
 
   static Map<String, String> get headers => {
