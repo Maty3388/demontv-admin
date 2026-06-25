@@ -58,7 +58,8 @@ jobs:
             echo "$VPS_KEY" > ~/.ssh/id_rsa
             chmod 600 ~/.ssh/id_rsa
             ssh-keyscan -H 149.104.92.205 >> ~/.ssh/known_hosts
-            rsync -az --delete build/web/ root@149.104.92.205:/var/www/html/panel/
+            ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa root@149.104.92.205 "rm -rf /var/www/html/panel/* && mkdir -p /var/www/html/panel"
+            scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa -r build/web/* root@149.104.92.205:/var/www/html/panel/
           else
             echo "VPS_SSH_KEY no configurado, saltando deploy web"
           fi
