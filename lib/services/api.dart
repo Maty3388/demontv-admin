@@ -1,9 +1,10 @@
+import 'api_base.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
 class AdminApi {
-  static const base = 'http://149.104.92.205:25461';
+  static String get base => getApiBase();
   static String get _base {
     // En web usar URL relativa para evitar mixed content
     if (const bool.fromEnvironment('dart.library.html')) return '';
