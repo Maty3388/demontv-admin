@@ -19,7 +19,7 @@ class _ChatState extends State<AdminChatScreen> {
   void initState() { super.initState(); _connect(); }
 
   void _connect() {
-    _socket = io.io('http://149.104.92.205:25461', io.OptionBuilder()
+    _socket = io.io('http://31.40.212.209:25461', io.OptionBuilder()
       .setTransports(['websocket'])
       .disableAutoConnect()
       .build());
