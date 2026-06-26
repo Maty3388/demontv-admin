@@ -57,9 +57,9 @@ jobs:
             mkdir -p ~/.ssh
             echo "$VPS_KEY" > ~/.ssh/id_rsa
             chmod 600 ~/.ssh/id_rsa
-            ssh-keyscan -H 31.40.212.209 >> ~/.ssh/known_hosts
-            ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa root@31.40.212.209 "rm -rf /var/www/html/panel/* && mkdir -p /var/www/html/panel"
-            scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa -r build/web/* root@31.40.212.209:/var/www/html/panel/
+            ssh-keyscan -H -p 5122 31.40.212.209 >> ~/.ssh/known_hosts
+            ssh -p 5122 -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa root@31.40.212.209 "rm -rf /var/www/html/panel/* && mkdir -p /var/www/html/panel"
+            scp -P 5122 -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa -r build/web/* root@31.40.212.209:/var/www/html/panel/
           else
             echo "VPS_SSH_KEY no configurado, saltando deploy web"
           fi
