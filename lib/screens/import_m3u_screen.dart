@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
 import '../services/api.dart';
 import '../theme/theme.dart';
 
@@ -39,6 +40,7 @@ class _ImportState extends State<ImportM3uScreen> {
   final _urlCtrl  = TextEditingController();
   final _textCtrl = TextEditingController();
   bool _loading = false, _verifyDone = false;
+  String _importType = 'channels';
   List<_Ch> _parsed = [], _selected = [];
   int _verifying = 0, _verified = 0;
   String? _error;
@@ -86,21 +88,24 @@ class _ImportState extends State<ImportM3uScreen> {
 
   Future<void> _import() async {
     final list = _verifyDone ? _selected.where((ch) => ch.active == true).toList() : _selected;
-    if (list.isEmpty) { setState(() => _error = 'Sin canales'); return; }
+    if (list.isEmpty) { setState(() => _error = 'Sin entradas'); return; }
     setState(() { _loading = true; _error = null; });
-    int ok = 0, fail = 0;
-    for (final ch in list) {
+    if (_importType == 'channels') {
+      int ok = 0, fail = 0;
+      for (final ch in list) {
+        try { final r = await AdminApi.addChannel(ch.name, ch.cat, ch.logo, ch.url); if (r['success'] == true) ok++; else fail++; } catch (_) { fail++; }
+      }
+      setState(() => _loading = false);
+      widget.onImported(); Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('\$ok importados\${fail > 0 ? ", \$fail fallaron" : ""}'), backgroundColor: AdminTheme.cyan));
+    } else {
+      final m3u = list.map((ch) => '#EXTINF:-1 tvg-name="\${ch.name}" tvg-logo="\${ch.logo}" group-title="\${ch.cat}",\${ch.name}\n\${ch.url}').join('\n');
       try {
-        final r = await AdminApi.addChannel(ch.name, ch.cat, ch.logo, ch.url);
-        if (r['success'] == true) ok++; else fail++;
-      } catch (_) { fail++; }
+        final r = await AdminApi.importVod(m3u, _importType);
+        setState(() => _loading = false); widget.onImported(); Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('\${r["imported"] ?? 0} importados'), backgroundColor: AdminTheme.cyan));
+      } catch (e) { setState(() { _loading = false; _error = 'Error: \$e'; }); }
     }
-    setState(() => _loading = false);
-    widget.onImported();
-    Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text('\$ok importados\${fail > 0 ? ", \$fail fallaron" : ""}'),
-      backgroundColor: AdminTheme.cyan));
   }
 
   @override
@@ -108,11 +113,43 @@ class _ImportState extends State<ImportM3uScreen> {
     backgroundColor: AdminTheme.bg,
     appBar: AppBar(title: const Text('Importar M3U')),
     body: Column(children: [
+      Container(
+        color: const Color(0xFF1A2535),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Row(children: [
+          const Text('Tipo:', style: TextStyle(color: Colors.white70, fontSize: 12)),
+          const SizedBox(width: 8),
+          ...[('channels','📺 Canales'),('movies','🎬 Películas'),('series','📡 Series')].map((t) =>
+            Padding(padding: const EdgeInsets.only(right: 6), child: GestureDetector(
+              onTap: () => setState(() => _importType = t.$1),
+              child: Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: _importType == t.$1 ? AdminTheme.cyan.withOpacity(0.2) : const Color(0xFF0F1422),
+                  border: Border.all(color: _importType == t.$1 ? AdminTheme.cyan : Colors.transparent),
+                  borderRadius: BorderRadius.circular(6)),
+                child: Text(t.$2, style: TextStyle(color: _importType == t.$1 ? AdminTheme.cyan : Colors.white54, fontSize: 11, fontWeight: FontWeight.bold)))))),
+        ]),
+      ),
       Expanded(child: _parsed.isEmpty ? _buildInput() : _buildResults()),
     ]),
   );
 
+  Future<void> _pickFile() async {
+    final r = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['m3u','m3u8','txt'], withData: true);
+    if (r != null && r.files.single.bytes != null) {
+      final p = parseM3u(String.fromCharCodes(r.files.single.bytes!));
+      if (p.isEmpty) { setState(() => _error = 'Sin entradas en el archivo'); return; }
+      setState(() { _parsed = p; _selected = List.from(p); _error = null; _verifyDone = false; });
+    }
+  }
+
   Widget _buildInput() => SingleChildScrollView(padding: const EdgeInsets.all(16), child: Column(children: [
+    GestureDetector(onTap: _pickFile, child: Container(width: double.infinity, height: 52,
+      decoration: BoxDecoration(border: Border.all(color: AdminTheme.cyan.withOpacity(0.4)), borderRadius: BorderRadius.circular(10), color: AdminTheme.cyan.withOpacity(0.08)),
+      child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.upload_file, color: AdminTheme.cyan), SizedBox(width: 8), Text('Subir archivo M3U / M3U8', style: TextStyle(color: AdminTheme.cyan, fontWeight: FontWeight.bold))]))),
+    const SizedBox(height: 12),
+    const Divider(color: Colors.white12),
+    const SizedBox(height: 4),
     if (widget.pasteMode) ...[
       TextField(controller: _textCtrl, maxLines: 10, style: const TextStyle(color: Colors.white, fontSize: 12),
         decoration: const InputDecoration(hintText: '#EXTM3U\n#EXTINF:-1,Canal\nhttp://stream.url')),

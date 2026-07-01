@@ -86,6 +86,9 @@ class AdminApi {
   static Future<Map<String, dynamic>> importM3uFromUrl(String url) =>
       _post('/admin/channels/import-url', {'url': url});
 
+  static Future<Map<String, dynamic>> importVod(String m3u, String type) =>
+      _post('/admin/import/vod', {'m3u': m3u, 'type': type});
+
   static Future<Map<String, dynamic>> getMovies() => _get('/admin/movies');
   static Future<Map<String, dynamic>> addMovie(Map data) => _post('/admin/movies', data);
   static Future<Map<String, dynamic>> deleteMovie(String id) => _delete('/admin/movies/$id');
